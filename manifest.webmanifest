@@ -1,0 +1,18 @@
+{
+  "name": "Süzülüş",
+  "short_name": "Süzülüş",
+  "description": "Kendi yaptığın kanatlarla dağların, göllerin ve fırtınaların üzerinden süzül.",
+  "lang": "tr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#1b1b44",
+  "theme_color": "#2a2f6e",
+  "icons": [
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

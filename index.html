@@ -4,6 +4,11 @@
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="theme-color" content="#2a2f6e">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Süzülüş">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -193,6 +198,8 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .quests li.done .qt { color: var(--gold); }
 .quests li.wait .qt { color: var(--ink-soft); }
 @media (max-height: 640px) { .prog { margin-top: 12px; } .prog h3 { margin-top: 8px; } }
+/* a phone held sideways has room for the level bar only; the missions wait on the result card */
+@media (max-height: 480px) { #menuProg h3, #menuProg .quests { display: none; } }
 .shop { width: min(860px, 100%); max-height: calc(100vh - 120px); display: flex; flex-direction: column; gap: 16px; }
 .shop-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .shop-head h2 { margin: 0; font: 300 34px/1 var(--f-display); letter-spacing: 0.08em; }
@@ -5386,5 +5393,6 @@ void main() {
     requestAnimationFrame((t) => { last = t; frame(t); });
   }
   boot();
+  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => { /* plays fine without it */ });
 })();
 </script>
