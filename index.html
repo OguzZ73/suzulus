@@ -1980,7 +1980,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     phaseShowT = 4.5;
   }
   // every 1.2 km a portal hangs in the sky; flying through it swaps the country in one beat, flying past keeps the land as it is
-  const PORTAL_GAP = 12000, PORTAL_RY = 92, PORTAL_RX = 40;
+  const PORTAL_GAP = 12000, PORTAL_RY = 96, PORTAL_RX = 50;
   const biome = { target: 'lakes', idx: 0, n: 1, portal: null };
   const BIOMES = ['lakes', 'canyon', 'polar'];
   const BIOME_NAMES = { lakes: 'Göller diyarı', canyon: 'Kızıl Kanyon', polar: 'Kutup' };
@@ -2026,6 +2026,19 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
         Sound.orb();
       }
     }
+    biomeTint();
+    // fair-weather cloud cover drifts between a full sky and none at all
+    coverT -= dt;
+    if (coverT <= 0) {
+      coverT = rand(35, 75);
+      const opts = POLAR ? [0, 0, 0, 0.15, 0.4] : [0, 0, 0.3, 0.6, 1, 1];
+      coverTarget = opts[(Math.random() * opts.length) | 0];
+    }
+    const wet = ['rain', 'snow', 'blizzard'].includes(weather.type) ? weather.amt : 0;
+    cloudCover = damp(cloudCover, Math.max(coverTarget, wet), 0.18, dt);
+  }
+  // colour the hour's palette for the country the flight is over
+  function biomeTint() {
     if (canyonK > 0.001) {
       // sun-baked reds and ochres at the same brightness as the hour of the day
       const warm = (o, k) => {
@@ -2056,15 +2069,6 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
       pal.fog = mix(pal.fog, mix(pal.top, pal.far, 0.5), 0.45 * polarK);
       pal.stars = Math.max(pal.stars, 0.88 * polarK * (1 - blizAmt()));
     }
-    // fair-weather cloud cover drifts between a full sky and none at all
-    coverT -= dt;
-    if (coverT <= 0) {
-      coverT = rand(35, 75);
-      const opts = POLAR ? [0, 0, 0, 0.15, 0.4] : [0, 0, 0.3, 0.6, 1, 1];
-      coverTarget = opts[(Math.random() * opts.length) | 0];
-    }
-    const wet = ['rain', 'snow', 'blizzard'].includes(weather.type) ? weather.amt : 0;
-    cloudCover = damp(cloudCover, Math.max(coverTarget, wet), 0.18, dt);
   }
   function updateWeather(dt) {
     if (weather.phase === 'hold') {
@@ -4228,37 +4232,18 @@ void main() {
     const shade = (k, a) => `rgba(${Math.round(r * k)},${Math.round(g * k)},${Math.round(b * k)},${a})`;
     const tint = (w, a) => `rgba(${Math.round(r + (255 - r) * w)},${Math.round(g + (255 - g) * w)},${Math.round(b + (255 - b) * w)},${a})`;
     const mk = () => { const c = document.createElement('canvas'); c.width = c.height = S; const x = c.getContext('2d'); x.translate(H, H); x.lineCap = 'round'; return [c, x]; };
-    // halo of light spilling into the air, and the tunnel falling away toward a bright far end
+    // halo of light spilling into the air around the gate
     const [base, bx] = mk();
     let gr = bx.createRadialGradient(0, 0, R * 0.85, 0, 0, H);
     gr.addColorStop(0, shade(1, 0.5)); gr.addColorStop(0.3, shade(1, 0.2)); gr.addColorStop(1, shade(1, 0));
     bx.fillStyle = gr; bx.fillRect(-H, -H, S, S);
-    gr = bx.createRadialGradient(0, 0, 0, 0, 0, R);
-    gr.addColorStop(0, tint(0.95, 1)); gr.addColorStop(0.07, tint(0.6, 1)); gr.addColorStop(0.2, shade(0.62, 1));
-    gr.addColorStop(0.5, shade(0.2, 1)); gr.addColorStop(0.78, shade(0.1, 1)); gr.addColorStop(0.93, shade(0.36, 1)); gr.addColorStop(1, shade(0.9, 1));
-    bx.fillStyle = gr; bx.beginPath(); bx.arc(0, 0, R, 0, TAU); bx.fill();
-    // arms of light winding down the tunnel
-    const [swirl, sx] = mk();
-    sx.beginPath(); sx.arc(0, 0, R - 1, 0, TAU); sx.clip();
-    sx.globalCompositeOperation = 'lighter';
-    try { sx.filter = 'blur(1.2px)'; } catch (e) { /* older browsers draw it sharp */ }
-    for (let i = 0; i < 13; i++) {
-      const a0 = (i / 13) * TAU + rand(-0.2, 0.2), turns = rand(1.1, 1.9), wide = rand(2.5, 8), bright = rand(0.25, 0.8), white = rand(0.15, 0.85), N = 46;
-      for (let j = 0; j < N; j++) {
-        const t0 = j / N, t1 = (j + 1) / N;
-        const q = (t) => { const rr = R * Math.pow(1 - t, 1.25), an = a0 + t * turns * TAU; return [Math.cos(an) * rr, Math.sin(an) * rr]; };
-        const A = q(t0), B = q(t1);
-        sx.strokeStyle = tint(white, bright * Math.sin(Math.PI * Math.min(1, t0 * 1.15 + 0.04)));
-        sx.lineWidth = wide * (1 - t0 * 0.85);
-        sx.beginPath(); sx.moveTo(A[0], A[1]); sx.lineTo(B[0], B[1]); sx.stroke();
-      }
-    }
-    sx.filter = 'none';
-    for (let i = 0; i < 170; i++) {
-      const rr = R * Math.sqrt(Math.random()), an = rand(0, TAU);
-      sx.fillStyle = tint(0.9, rand(0.2, 0.9));
-      sx.beginPath(); sx.arc(Math.cos(an) * rr, Math.sin(an) * rr, rand(0.4, 1.3), 0, TAU); sx.fill();
-    }
+    bx.globalCompositeOperation = 'destination-out';
+    bx.beginPath(); bx.arc(0, 0, R - 2, 0, TAU); bx.fill();
+    // the opening: its edge burns with the gate's light, the middle stays clear to see through
+    const [edge, ex] = mk();
+    gr = ex.createRadialGradient(0, 0, R * 0.45, 0, 0, R);
+    gr.addColorStop(0, tint(0.6, 0)); gr.addColorStop(0.7, tint(0.5, 0.05)); gr.addColorStop(0.9, tint(0.35, 0.35)); gr.addColorStop(1, tint(0.7, 0.95));
+    ex.fillStyle = gr; ex.beginPath(); ex.arc(0, 0, R, 0, TAU); ex.fill();
     // the rim: ragged filaments of energy around one hard bright edge
     const [rim, rx] = mk();
     rx.globalCompositeOperation = 'lighter';
@@ -4275,7 +4260,7 @@ void main() {
     }
     rx.strokeStyle = tint(0.92, 1); rx.lineWidth = 3; rx.shadowColor = tint(0.3, 1); rx.shadowBlur = 12;
     rx.beginPath(); rx.arc(0, 0, R, 0, TAU); rx.stroke();
-    return (portalTex[name] = { base, swirl, rim, S, R, spark: tint(0.85, 1) });
+    return (portalTex[name] = { base, edge, rim, S, R, spark: tint(0.85, 1) });
   }
   function drawPortal(front) {
     const p = biome.portal;
@@ -4303,10 +4288,19 @@ void main() {
       return;
     }
     spin(A.base, 0, 1, 1);
+    // the other country, seen through the opening
+    ctx.save();
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.clip();
+    ctx.fillStyle = `rgb(${PORTAL_RGB[p.to].map((v) => Math.round(v * 0.25)).join(',')})`;
+    ctx.fillRect(-R, -R, R * 2, R * 2);
+    if (portalSeen) {
+      const ix = 1 / ((PORTAL_RX / R) * kk), iy = 1 / ((PORTAL_RY / R) * kk);
+      ctx.scale(ix, iy);
+      ctx.drawImage(portalC, -(PORTAL_RX + 6), -(PORTAL_RY + 8), (PORTAL_RX + 6) * 2, (PORTAL_RY + 8) * 2);
+    }
+    ctx.restore();
+    spin(A.edge, 0, 1, 0.9 + 0.1 * Math.sin(gtime * 3.1 + p.ph));
     ctx.globalCompositeOperation = 'lighter';
-    spin(A.swirl, gtime * 1.1, 1, 0.95);
-    spin(A.swirl, -gtime * 0.55 + 1.7, 0.74, 0.7);
-    spin(A.swirl, gtime * 2.1 + 0.6, 0.42, 0.8);
     spin(A.rim, gtime * 0.3, 1, 1);
     spin(A.rim, -gtime * 0.45, 1.015, 0.6);
     // motes of light drawn in from the air around
@@ -4805,16 +4799,7 @@ void main() {
     if (slowAmt > 0.02) { ctx.globalAlpha = slowAmt * 0.8; ctx.drawImage(vign, 0, 0, cvs.width, cvs.height); ctx.globalAlpha = 1; }
   }
 
-  function render() {
-    obsFillC = mix(pal.near, pal.far, 0.06);
-    rimC = mix(pal.glow, pal.fog, 0.4);
-    if (pal.stars > 0.5) rimC = mix(rimC, [170, 195, 255], (pal.stars - 0.5) * 1.2);
-    const sh = shake;
-    const shx = sh ? (Math.random() * 2 - 1) * sh : 0, shy = sh ? (Math.random() * 2 - 1) * sh : 0;
-    ctx.setTransform(scale, 0, 0, scale, shx * scale, (shy - viewTop) * scale);
-    ctx.globalAlpha = 1;
-    ctx.globalCompositeOperation = 'source-over';
-
+  function drawBackdrop() {
     drawSky();
     const clearSky = (1 - stormAmt()) * (1 - blizAmt()) * (1 - cloudCover * 0.5);
     const mw = pal.stars * (0.2 + 0.8 * polarK) * clearSky;
@@ -4845,6 +4830,49 @@ void main() {
       drawWater();
       drawLayer(3); drawFog(3);
     }
+  }
+  // what lies beyond the portal: the same view painted as the other country, kept for the opening of the gate
+  const portalC = document.createElement('canvas'), portalCtx = portalC.getContext('2d');
+  let portalSeen = false, portalTick = 0;
+  function capturePortal() {
+    const p = biome.portal;
+    if (!p || p.used || state !== 'play') { if (!p || state === 'menu') portalSeen = false; return; }
+    if (p.x < camX - 120 || p.x > camX + W + 120) { portalSeen = false; return; }
+    // a fresh view every other frame is plenty for a window this small
+    if (portalSeen && portalTick++ % 2) return;
+    // a tall slice of the whole landscape, from open sky down to the near hills, shrunk to fit the opening
+    const hh = 265, hw = (hh * (PORTAL_RX + 6)) / (PORTAL_RY + 8), x0 = p.x - camX - hw, y0 = 385 - hh;
+    const keep = {}, was = [CANYON, POLAR, canyonK, polarK];
+    for (const k in pal) keep[k] = Array.isArray(pal[k]) ? pal[k].slice() : pal[k];
+    CANYON = p.to === 'canyon'; POLAR = p.to === 'polar'; canyonK = CANYON ? 1 : 0; polarK = POLAR ? 1 : 0;
+    computePalette(dayT, POLAR ? 0 : stormAmt());
+    biomeTint();
+    ctx.setTransform(scale, 0, 0, scale, 0, -viewTop * scale);
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x0, y0, hw * 2, hh * 2); ctx.clip();
+    drawBackdrop();
+    ctx.restore();
+    const pw = Math.ceil((PORTAL_RX + 6) * 2 * scale), ph = Math.ceil((PORTAL_RY + 8) * 2 * scale);
+    if (portalC.width !== pw || portalC.height !== ph) { portalC.width = pw; portalC.height = ph; }
+    portalCtx.imageSmoothingQuality = 'high';
+    portalCtx.drawImage(cvs, Math.round(x0 * scale), Math.round((y0 - viewTop) * scale), Math.round(hw * 2 * scale), Math.round(hh * 2 * scale), 0, 0, pw, ph);
+    portalSeen = true;
+    [CANYON, POLAR, canyonK, polarK] = was;
+    for (const k in keep) { const v = keep[k], o = pal[k]; if (Array.isArray(v) && Array.isArray(o)) { o[0] = v[0]; o[1] = v[1]; o[2] = v[2]; } else pal[k] = v; }
+  }
+  function render() {
+    capturePortal();
+    obsFillC = mix(pal.near, pal.far, 0.06);
+    rimC = mix(pal.glow, pal.fog, 0.4);
+    if (pal.stars > 0.5) rimC = mix(rimC, [170, 195, 255], (pal.stars - 0.5) * 1.2);
+    const sh = shake;
+    const shx = sh ? (Math.random() * 2 - 1) * sh : 0, shy = sh ? (Math.random() * 2 - 1) * sh : 0;
+    ctx.setTransform(scale, 0, 0, scale, shx * scale, (shy - viewTop) * scale);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+
+    drawBackdrop();
     drawFireflies();
 
     ctx.save();
