@@ -239,7 +239,34 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   .skills { gap: 8px; }
   .best { display: none; }
 }
+/* the title leans into the wind: letters ride a passing wave, trails blow off them, gusts curl through the word */
+.title { position: relative; }
+.title-word { display: inline-block; font-style: italic; transform: skewX(-9deg); transform-origin: 0 100%; }
+.title-word span {
+  display: inline-block;
+  text-shadow: -0.05em 0 0 rgba(255, 255, 255, 0.3), -0.12em 0 0.02em rgba(255, 255, 255, 0.16), -0.22em 0 0.05em rgba(255, 255, 255, 0.08), 0 6px 50px rgba(10, 14, 40, 0.25);
+  animation: title-ride 3.6s ease-in-out infinite; animation-delay: calc(var(--i) * -0.34s);
+}
+@keyframes title-ride {
+  0%, 100% { transform: translateY(0.035em) rotate(1.4deg); }
+  50% { transform: translateY(-0.035em) rotate(-1.8deg); }
+}
+.title-wind { position: absolute; left: -4%; top: -8%; width: 112%; height: 116%; overflow: visible; pointer-events: none; }
+.title-wind path {
+  fill: none; stroke: rgba(255, 255, 255, 0.55); stroke-width: 2; stroke-linecap: round; vector-effect: non-scaling-stroke;
+  stroke-dasharray: 150 900; stroke-dashoffset: 150; animation: title-gust 4.2s cubic-bezier(0.45, 0, 0.3, 1) infinite;
+}
+.title-wind path:nth-child(2) { animation-delay: -1.5s; animation-duration: 5s; stroke: rgba(255, 255, 255, 0.4); }
+.title-wind path:nth-child(3) { animation-delay: -2.9s; animation-duration: 3.6s; stroke: rgba(255, 255, 255, 0.3); stroke-width: 1.4; }
+@keyframes title-gust {
+  0% { stroke-dashoffset: 150; opacity: 0; }
+  15% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { stroke-dashoffset: -900; opacity: 0; }
+}
 @media (prefers-reduced-motion: reduce) {
+  .title-word span { animation: none !important; }
+  .title-wind { display: none; }
   .screen, .combo.pop .m, .skill { animation: none !important; transition: none !important; }
   .phase { transition: none; }
 }
@@ -288,7 +315,14 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   <section class="screen" id="menu">
     <div class="hero">
       <p class="eyebrow">Yapay kanatlarla sonsuz bir yolculuk</p>
-      <h1 class="title">Süzülüş</h1>
+      <h1 class="title" aria-label="Süzülüş">
+        <span class="title-word" aria-hidden="true"><span style="--i:0">S</span><span style="--i:1">ü</span><span style="--i:2">z</span><span style="--i:3">ü</span><span style="--i:4">l</span><span style="--i:5">ü</span><span style="--i:6">ş</span></span>
+        <svg class="title-wind" viewBox="0 0 660 150" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M-20 28 C120 8 250 44 380 24 S560 6 610 30 c26 14 8 40 -14 30 c-12 -6 -8 -20 4 -20"/>
+          <path d="M-40 84 C90 104 210 62 340 82 S520 108 588 80 c24 -12 40 10 22 24 c-10 8 -24 0 -18 -12"/>
+          <path d="M40 136 C160 120 300 148 430 130 S600 122 640 132"/>
+        </svg>
+      </h1>
       <p class="lede">Kendi yaptığın kanatlarla karlı dağların, şelalelerin, göllerin ve fırtınaların üzerinden süzül. Altın tüyleri topla, rüzgar halkalarıyla komboyu büyüt, kayalara ve şahinlere çarpma.</p>
       <div class="row">
         <button class="cta" id="btnStart" type="button">Uçuşa başla <span class="kbd dark">Space</span></button>
