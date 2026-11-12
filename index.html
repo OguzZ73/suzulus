@@ -1389,7 +1389,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     return mkObs('cactus', { x, gy, h, tw, aw, arms, polys, minX: x - tw - 30, maxX: x + tw + 30 });
   }
   function addPine(x, h) {
-    if (CANYON) return addCactus(x, h);
+    if (biomeAt(x - startX) === 'canyon') return addCactus(x, h);
     const gy = groundY(x), w = h * 0.44;
     return mkObs('pine', { x, gy, h, w, polys: [[x - w * 0.44, gy + 10, x, gy - h + 4, x + w * 0.44, gy + 10]], minX: x - w / 2, maxX: x + w / 2 });
   }
@@ -1976,36 +1976,39 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     el.phase.classList.add('show');
     phaseShowT = 4.5;
   }
-  // every 1.8 km the flight crosses into the other country through a thick bank of mist
+  // every 1.8 km a portal stands across the flight path; flying through it swaps the country in one beat
   const BIOME_LEN = 18000;
-  const biome = { target: 'lakes', tr: -1, fog: 0 };
+  const biome = { target: 'lakes' };
   const BIOMES = ['lakes', 'canyon', 'polar'];
   const BIOME_NAMES = { lakes: 'Göller diyarı', canyon: 'Kızıl Kanyon', polar: 'Kutup' };
   const NIGHT_KF = KF.find((k) => k.t === 0.76);
   const curBiome = () => (CANYON ? 'canyon' : POLAR ? 'polar' : 'lakes');
+  const biomeAt = (d) => BIOMES[Math.max(0, Math.floor(d / BIOME_LEN)) % BIOMES.length];
+  // world x of the next portal ahead of the bird
+  const portalX = () => startX + (Math.floor(Math.max(0, dist) / BIOME_LEN) + 1) * BIOME_LEN;
   function updateBiome(dt) {
-    if (state === 'play') biome.target = BIOMES[Math.floor(dist / BIOME_LEN) % BIOMES.length];
+    if (state === 'play') biome.target = biomeAt(dist);
     const want = biome.target;
-    if (biome.tr < 0 && want !== curBiome()) biome.tr = 0;
-    if (biome.tr >= 0) {
-      const was = biome.tr;
-      biome.tr = Math.min(1, biome.tr + dt / 5);
-      biome.fog = Math.sin(biome.tr * Math.PI);
-      if (was < 0.5 && biome.tr >= 0.5) {
-        CANYON = want === 'canyon'; POLAR = want === 'polar';
-        Sound.setBiome(want);
+    if (want !== curBiome()) {
+      const through = state === 'play' && dist >= BIOME_LEN;
+      CANYON = want === 'canyon'; POLAR = want === 'polar';
+      canyonK = CANYON ? 1 : 0; polarK = POLAR ? 1 : 0;
+      Sound.setBiome(want);
+      // no snow or blossom over the desert, no rain or blossom on the ice
+      const bad = CANYON ? ['snow', 'blizzard', 'petals'] : POLAR ? ['rain', 'petals'] : [];
+      if (bad.includes(weather.type)) { weather.type = 'clear'; weather.amt = 0; weather.phase = 'hold'; weather.timer = rand(20, 40); wp.length = 0; }
+      if (POLAR) { coverTarget = Math.min(coverTarget, 0.2); coverT = rand(30, 60); }
+      if (through) {
         el.phase.textContent = BIOME_NAMES[want];
         el.phase.classList.add('show');
         phaseShowT = 4.5;
-        // no snow or blossom over the desert, no rain or blossom on the ice
-        const bad = CANYON ? ['snow', 'blizzard', 'petals'] : POLAR ? ['rain', 'petals'] : [];
-        if (bad.includes(weather.type)) { weather.next = 'clear'; weather.phase = 'out'; }
-        if (POLAR) { coverTarget = Math.min(coverTarget, 0.2); coverT = rand(30, 60); }
+        flash = Math.max(flash, RM ? 0.12 : 0.6);
+        const c = PORTAL_COL[want];
+        shock(bird.x, bird.y, `rgba(${c},`, 150);
+        sparks(bird.x, bird.y, 26, 'white', 320, 2.6);
+        Sound.orb();
       }
-      if (biome.tr >= 1) { biome.tr = -1; biome.fog = 0; }
     }
-    canyonK = damp(canyonK, CANYON ? 1 : 0, biome.tr >= 0 ? 3 : 1, dt);
-    polarK = damp(polarK, POLAR ? 1 : 0, biome.tr >= 0 ? 3 : 1, dt);
     if (canyonK > 0.001) {
       // sun-baked reds and ochres at the same brightness as the hour of the day
       const warm = (o, k) => {
@@ -2374,7 +2377,8 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
       }
     }
     // fireflies at night
-    const want = Math.round(28 * clamp((pal.stars - 0.3) / 0.6, 0, 1) * (1 - stormAmt()) * (1 - blizAmt()) * (1 - polarK));
+    const want = Math.round(28 * clamp((pal.stars - 0.3) / 0.6, 0, 1) * (1 - stormAmt()) * (1 - blizAmt()) * (1 - polarK) * (weather.type === 'snow' ? 0 : 1));
+    if (!want) flies.length = 0;
     while (flies.length < want) flies.push({ x: rand(0, W), y: rand(470, 620), vx: rand(-14, 14), vy: rand(-8, 8), ph: rand(0, TAU), a: 0 });
     for (let i = flies.length - 1; i >= 0; i--) {
       const f = flies[i];
@@ -4198,6 +4202,53 @@ void main() {
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
   }
+  // the gate between countries: a tall oval of light tinted like the land behind it
+  const PORTAL_COL = { lakes: '130,235,190', canyon: '255,158,88', polar: '160,210,255' };
+  function drawPortal(front) {
+    if (state !== 'play' && state !== 'dying') return;
+    const x = portalX();
+    if (x < camX - 180 || x > camX + W + 180) return;
+    const col = PORTAL_COL[biomeAt(dist + BIOME_LEN)], gy = groundY(x) + 8;
+    const rx = 62, ry = 420, pulse = 0.85 + 0.15 * Math.sin(gtime * 3);
+    const a0 = front ? -Math.PI / 2 : Math.PI / 2, a1 = front ? Math.PI / 2 : Math.PI * 1.5;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x - 220, viewTop - 60, 440, gy - viewTop + 60); ctx.clip();
+    ctx.translate(x, 320);
+    ctx.lineCap = 'round';
+    if (!front) {
+      // shimmering veil across the opening
+      const g = ctx.createLinearGradient(-rx, 0, rx, 0);
+      g.addColorStop(0, `rgba(${col},0.1)`); g.addColorStop(0.5, `rgba(${col},${0.36 * pulse})`); g.addColorStop(1, `rgba(${col},0.1)`);
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, TAU); ctx.fill();
+      // currents of light circling inward
+      ctx.lineWidth = 2;
+      for (let i = 1; i <= 4; i++) {
+        const k = i / 5;
+        ctx.strokeStyle = `rgba(255,255,255,${0.16 + 0.1 * i})`;
+        ctx.setLineDash([26 + i * 8, 44 + i * 10]);
+        ctx.lineDashOffset = gtime * (70 + i * 30) * (i % 2 ? 1 : -1);
+        ctx.beginPath(); ctx.ellipse(0, 0, rx * k, ry * k, 0, 0, TAU); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+    }
+    // the rim: back half behind the bird, front half over it
+    ctx.strokeStyle = `rgba(${col},${0.3 * pulse})`; ctx.lineWidth = 20;
+    ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, a0, a1); ctx.stroke();
+    ctx.strokeStyle = `rgba(${col},0.95)`; ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, a0, a1); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, a0, a1); ctx.stroke();
+    // sparks running round the rim
+    ctx.fillStyle = '#ffffff';
+    for (let i = 0; i < 12; i++) {
+      const an = gtime * 0.9 + (i * TAU) / 12, c = Math.cos(an);
+      if (c > 0 !== front) continue;
+      ctx.globalAlpha = 0.5 + 0.5 * Math.sin(gtime * 5 + i * 1.9);
+      ctx.beginPath(); ctx.arc(c * (rx + 9), Math.sin(an) * (ry + 9), 2.4, 0, TAU); ctx.fill();
+    }
+    ctx.restore();
+  }
   function drawItems(front) {
     const vx0 = camX - 60, vx1 = camX + W + 60;
     for (const it of items) {
@@ -4709,8 +4760,6 @@ void main() {
       drawLayer(3); drawFog(3);
     }
     drawFireflies();
-    // the mist curtain between countries hides the landscape changing behind it
-    if (biome.fog > 0.01) { ctx.fillStyle = css(pal.fog, biome.fog * 0.96); ctx.fillRect(-20, viewTop - 20, W + 40, VH + 40); }
 
     ctx.save();
     ctx.translate(-camX, 0);
@@ -4718,9 +4767,11 @@ void main() {
     drawGround();
     drawObstacles(false);
     drawItems(false);
+    drawPortal(false);
     drawTrail();
     drawBird();
     drawItems(true);
+    drawPortal(true);
     drawFx();
     ctx.restore();
 
