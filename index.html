@@ -298,19 +298,6 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
       </div>
       <div class="prog" id="menuProg"></div>
     </div>
-    <aside class="card controls" aria-label="Kontroller">
-      <h2>Kontroller</h2>
-      <dl>
-        <dt><span class="kbd">↑</span><span class="kbd">↓</span></dt><dd><b>Yüksel / dal</b></dd>
-        <dt><span class="kbd">←</span><span class="kbd">→</span></dt><dd><b>Yavaşla / hızlan</b></dd>
-        <dt><span class="kbd c-gold">≋</span></dt><dd><b>Hava akımları</b><span>Parıldayan sütunlara gir, planör kendiliğinden yükselir.</span></dd>
-        <dt><span class="kbd c-gold">S</span></dt><dd><b>Rüzgar atılımı</b><span>Birkaç saniye çok hızlı uçarsın, mesafe puanı iki katına çıkar.</span></dd>
-        <dt><span class="kbd c-cyan">D</span></dt><dd><b>Işık kalkanı</b><span>Bir çarpmayı emer, yere değmeyi de bir kez affeder.</span></dd>
-        <dt><span class="kbd c-lilac">F</span></dt><dd><b>Zamanı yavaşlat</b><span>Dünya ağırlaşır, dar geçitlerde düşünecek vaktin olur.</span></dd>
-      </dl>
-      <p class="foot"><span class="kbd">P</span> duraklat <span class="kbd">M</span> ses</p>
-      <p class="touch-hint">Dokunmatik ekranda: ekranın üst yarısına dokun yüksel, alt yarısına dokun dal.</p>
-    </aside>
   </section>
 
   <section class="screen center" id="shop" hidden>
@@ -1212,6 +1199,10 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   let state = 'menu';
   let time = 0, gtime = 0, dayT = 0.015, timeScale = 1;
   let camX = 0, camDx = 0, camV = 0;
+  // the launch cliff of the main menu: x is its edge, top the height of its brow; standK is 1 while the pilot stands on it
+  const cliff = { x: -1e9, top: 372 };
+  let standK = 0;
+  const STAND_FEET = 28;
   let score = 0, dist = 0, startX = 0, featherCount = 0, ringCount = 0, thermalCount = 0, combo = 0, comboTimer = 0, maxCombo = 0;
   let best = 0, bestAtStart = 0, bestAnnounced = false;
   let shake = 0, flash = 0, slowAmt = 0, dashAmt = 0, ringBoost = 0, ringSlow = 0, shieldAmt = 0;
@@ -1857,9 +1848,14 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     obstacles.length = 0; items.length = 0; popups.length = 0;
     bird.dead = false; bird.grounded = false; bird.spin = 0; glider = null; chute = null;
-    bird.y = Math.min(bird.y, groundY(bird.x) - 220);
-    if (bird.y < 120) bird.y = 260;
-    bird.vy = 0; bird.inv = 1.6; bird.ang = 0;
+    const jump = state === 'menu' && standK > 0.5;
+    if (jump) { bird.vy = -175; bird.speed = 130; }
+    else {
+      bird.y = Math.min(bird.y, groundY(bird.x) - 220);
+      if (bird.y < 120) bird.y = 260;
+      bird.vy = 0; standK = 0;
+    }
+    bird.inv = 1.6; bird.ang = 0;
     score = 0; dist = 0; startX = bird.x; featherCount = 0; ringCount = 0; thermalCount = 0; combo = 0; comboTimer = 0; maxCombo = 1;
     applyUpgrades();
     bestAtStart = best; bestAnnounced = false; ringBoost = 0; ringSlow = 0;
@@ -1870,7 +1866,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     runLvl = lvlAtStart = levelInfo().l; questM = 0; questDone.length = 0;
     for (const q of save.quests) { q.wait = false; if (QUESTS[q.k].one) q.p = 0; }
     el.hudLvl.textContent = String(runLvl);
-    bird.speed = Math.max(bird.speed, startSpeed() * 0.87);
+    if (!jump) bird.speed = Math.max(bird.speed, startSpeed() * 0.87);
     state = 'play';
     timeScale = 1;
     hideScreens();
@@ -1907,7 +1903,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     state = 'menu';
     obstacles.length = 0; items.length = 0; popups.length = 0;
     bird.dead = false; bird.grounded = false; bird.spin = 0; bird.ang = 0; bird.inv = 0; glider = null; chute = null;
-    if (bird.y > groundY(bird.x) - 200) bird.vy = -260;
+    placeCliff();
     for (const n of SKILL_NAMES) { if (sk[n].t > 0) endSkill(n); sk[n].t = 0; sk[n].cd = 0; }
     hideScreens();
     el.hud.hidden = true; el.btnPause.hidden = true; el.btnMute.hidden = true; el.hudBestWrap.hidden = true;
@@ -2303,7 +2299,8 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     const up = (state === 'play' && inUp() && !inDown()) || (state === 'menu' && bird.vy < -60);
     const down = state === 'play' && inDown() && !inUp();
     // pushing the bar out lifts the nose, pulling it in drops it into a dive
-    bird.pitch = damp(bird.pitch, bird.dead ? 0.45 : up ? -0.14 : down ? 0.13 : 0, 5, gdt);
+    bird.pitch = damp(bird.pitch, bird.dead ? 0.45 : state === 'menu' ? -0.16 + Math.sin(time * 0.9) * 0.025 : up ? -0.14 : down ? 0.13 : 0, 5, gdt);
+    if (state !== 'menu') standK = damp(standK, 0, 4.5, gdt);
     bird.phase += gdt * (7 + bird.speed / 70);
     if (!bird.dead) bird.ang = damp(bird.ang, Math.atan2(bird.vy, Math.max(bird.speed, 120)) * 0.9, 9, gdt);
     // trail streams off the near wingtip
@@ -2345,14 +2342,18 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     }
     spawnAhead();
   }
+  // on the menu the pilot stands right of the title; on narrow screens a little further over
+  const MENU_FRAC = () => (W > 900 ? 0.64 : 0.7);
+  function placeCliff() {
+    cliff.x = bird.x + 15;
+    bird.y = cliff.top - STAND_FEET; bird.vy = 0; bird.speed = 0; bird.ang = 0; bird.tn = 0;
+    standK = 1;
+  }
   function updateMenu(gdt) {
-    bird.speed = damp(bird.speed, 230, 1, gdt);
-    let gmin = 1e9;
-    for (let k = 0; k < 6; k++) gmin = Math.min(gmin, groundY(bird.x + k * 70));
-    const ty = Math.min(gmin - 210, 330) + Math.sin(time * 0.55) * 50;
-    bird.vy = damp(bird.vy, clamp((ty - bird.y) * 1.6, -260, 260), 2, gdt);
-    bird.x += bird.speed * gdt;
-    bird.y += bird.vy * gdt;
+    // standing at the edge with the wing on his shoulders, waiting for the word
+    bird.speed = 0; bird.vy = 0;
+    bird.y = cliff.top - STAND_FEET + Math.sin(time * 1.1) * 0.6;
+    standK = damp(standK, 1, 6, gdt);
   }
   function updateGlider(gdt) {
     const g = glider;
@@ -2736,7 +2737,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 
     // camera
     const prev = camX;
-    bird.frac = damp(bird.frac, sk.dash.t > 0 || ringBoost > 0 ? 0.2 : 0.27, 2.5, dt);
+    bird.frac = damp(bird.frac, state === 'menu' ? MENU_FRAC() : sk.dash.t > 0 || ringBoost > 0 ? 0.2 : 0.27, state === 'menu' ? 3 : standK > 0.02 ? 1.3 : 2.5, dt);
     camX = bird.x - W * bird.frac;
     camDx = camX - prev;
     camV = damp(camV, dt > 0 ? camDx / dt : 0, 6, dt);
@@ -4010,6 +4011,124 @@ void main() {
     ctx.lineWidth = 2;
     ctx.stroke();
   }
+  // the launch cliff: a brow of rock standing out of the hills, layered and cracked, with a windsock at its edge
+  function cliffTopY(x) {
+    const d = cliff.x - x;
+    return cliff.top + 3 - 3 * Math.exp(-d / 26) + d * 0.018 + (vnoise(x / 46, 811) - 0.5) * 7 * clamp(d / 60, 0, 1);
+  }
+  // the face below the lip: it cuts back under the overhang, then steps outward in ledges down to the scree
+  function cliffFaceX(y) {
+    const t = clamp((y - cliff.top) / 300, 0, 1);
+    const under = -30 * Math.sin(Math.min(1, t * 3.2) * Math.PI * 0.5);
+    const out = 96 * Math.pow(t, 1.7);
+    const step = Math.floor(y / 34), ledge = (hash1(step, 823) - 0.35) * 16 + (vnoise(y / 9, 829) - 0.5) * 6;
+    return cliff.x + 12 + under + out + ledge * clamp(t * 4, 0, 1);
+  }
+  function drawCliff() {
+    if (cliff.x < camX - 140) return;
+    const E = cliff.x, T = cliff.top, left = camX - 40, foot = groundY(E + 60) + 14;
+    const face = () => {
+      ctx.beginPath();
+      ctx.moveTo(left, VB + 20);
+      ctx.lineTo(left, cliffTopY(left));
+      for (let x = left; x < E; x += 8) ctx.lineTo(x, cliffTopY(x));
+      ctx.lineTo(E, cliffTopY(E));
+      ctx.lineTo(E + 12, T + 2);
+      ctx.lineTo(E + 13, T + 7);
+      for (let y = T + 12; y < foot; y += 5) ctx.lineTo(cliffFaceX(y), y);
+      ctx.lineTo(cliffFaceX(foot) + 30, VB + 20);
+      ctx.closePath();
+    };
+    const dark = mix(pal.near, BLACK, 0.3), lightX = (sun.a >= moon.a ? sun.x : moon.x) + camX, lit = lightX > E - 200;
+    // a lower buttress standing a little further off, paler with distance
+    ctx.beginPath();
+    ctx.moveTo(E - 60, VB + 20);
+    const bt = Math.min(T + 150, foot - 70);
+    ctx.lineTo(E + 26, bt + 46); ctx.lineTo(E + 44, bt + 10); ctx.lineTo(E + 70, bt); ctx.lineTo(E + 96, bt + 6); ctx.lineTo(E + 108, bt + 38);
+    ctx.lineTo(E + 126, bt + 52); ctx.lineTo(E + 138, bt + 96); ctx.lineTo(E + 170, VB + 20);
+    ctx.closePath();
+    ctx.fillStyle = css(mix(pal.near, pal.fog, 0.3)); ctx.fill();
+    ctx.strokeStyle = css(rimC, 0.3); ctx.lineWidth = 1.4; ctx.stroke();
+    // the rock itself, lit on the side that faces the light
+    face();
+    const g = ctx.createLinearGradient(E - 260, 0, E + 90, 0);
+    g.addColorStop(0, css(dark)); g.addColorStop(0.62, css(mix(pal.near, BLACK, 0.12)));
+    g.addColorStop(1, css(lit ? mix(pal.near, rimC, 0.3) : mix(pal.near, BLACK, 0.2)));
+    ctx.fillStyle = g; ctx.fill();
+    ctx.save(); ctx.clip();
+    // darkness gathering toward the foot and under the overhang
+    const sh = ctx.createLinearGradient(0, T, 0, VB + 20);
+    sh.addColorStop(0, 'rgba(8,8,22,0)'); sh.addColorStop(0.08, 'rgba(8,8,22,0.3)'); sh.addColorStop(0.22, 'rgba(8,8,22,0.08)'); sh.addColorStop(1, 'rgba(8,8,22,0.42)');
+    ctx.fillStyle = sh; ctx.fillRect(left, T - 10, E + 220 - left, VB + 40 - T);
+    // beds of rock: each layer a dark seam with a lit shelf beneath it
+    for (let k = 0; k < 13; k++) {
+      const y0 = T + 18 + k * 21 + hash1(k, 841) * 9, x1 = cliffFaceX(y0) + 6, len = 90 + hash1(k, 842) * 170, tilt = (hash1(k, 843) - 0.5) * 10;
+      ctx.beginPath(); ctx.moveTo(x1, y0);
+      for (let q = 1; q <= 6; q++) ctx.lineTo(x1 - (len * q) / 6, y0 + (tilt * q) / 6 + (hash1(k * 7 + q, 844) - 0.5) * 5);
+      ctx.strokeStyle = 'rgba(6,6,18,0.3)'; ctx.lineWidth = 2.2 + hash1(k, 845) * 1.6; ctx.stroke();
+      ctx.save(); ctx.translate(0, 2.4); ctx.strokeStyle = css(rimC, lit ? 0.2 : 0.09); ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
+    }
+    // cracks running down from the brow
+    ctx.strokeStyle = 'rgba(6,6,18,0.34)'; ctx.lineWidth = 1.2; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    for (let k = 0; k < 9; k++) {
+      let x = E - 6 - k * 26 - hash1(k, 851) * 18, y = cliffTopY(x) + 2;
+      ctx.moveTo(x, y);
+      const n = 3 + Math.floor(hash1(k, 852) * 4);
+      for (let q = 0; q < n; q++) { x += (hash1(k * 5 + q, 853) - 0.6) * 12; y += 12 + hash1(k * 5 + q, 854) * 22; ctx.lineTo(x, y); }
+    }
+    ctx.stroke();
+    // snow lying on the brow in the polar country
+    if (polarK > 0.05) { ctx.fillStyle = `rgba(240,246,255,${0.9 * polarK})`; ctx.beginPath(); ctx.moveTo(left, T - 20); for (let x = left; x <= E + 14; x += 10) ctx.lineTo(x, cliffTopY(x) + 5 + vnoise(x / 17, 861) * 6); ctx.lineTo(E + 14, T - 20); ctx.closePath(); ctx.fill(); }
+    ctx.restore();
+    // light along the brow and down the edge of the face
+    ctx.beginPath();
+    ctx.moveTo(left, cliffTopY(left));
+    for (let x = left; x < E; x += 8) ctx.lineTo(x, cliffTopY(x));
+    ctx.lineTo(E, cliffTopY(E)); ctx.lineTo(E + 12, T + 2); ctx.lineTo(E + 13, T + 7);
+    ctx.strokeStyle = css(rimC, 0.6); ctx.lineWidth = 2; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(E + 13, T + 7);
+    for (let y = T + 12; y < foot; y += 5) ctx.lineTo(cliffFaceX(y), y);
+    ctx.strokeStyle = css(rimC, lit ? 0.42 : 0.16); ctx.lineWidth = 1.5; ctx.stroke();
+    // roots and creepers hanging under the lip
+    ctx.strokeStyle = css(mix(pal.near, BLACK, 0.45)); ctx.lineWidth = 1.1; ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (let k = 0; k < 6; k++) {
+      const x = E + 9 - k * 5.5, len = 12 + hash1(k, 871) * 26, sw = Math.sin(gtime * 1.6 + k * 1.3) * 2.2;
+      ctx.moveTo(x, T + 8 + k * 1.5); ctx.quadraticCurveTo(x - 2 + sw * 0.4, T + 8 + len * 0.6, x - 1 + sw, T + 8 + len);
+    }
+    ctx.stroke();
+    // what grows and stands on top: pines back from the edge, grass in the wind, loose stones
+    const top = css(mix(pal.near, BLACK, 0.16));
+    if (!CANYON) {
+      ctx.beginPath();
+      for (const [dx, h] of [[148, 72], [190, 108], [230, 64], [282, 90]]) { const x = E - dx; pine(ctx, x, cliffTopY(x) + 5, h, h * 0.44); }
+      ctx.fillStyle = top; ctx.fill();
+      ctx.strokeStyle = css(rimC, 0.4); ctx.lineWidth = 1.3; ctx.stroke();
+    }
+    ctx.beginPath();
+    for (let x = Math.ceil(left / 9) * 9; x < E - 4; x += 9) {
+      const r = hash1(x / 9, 881);
+      if (r > 0.62) continue;
+      const bx = x + r * 7, y = cliffTopY(bx) + 2, bh = 5 + hash1(x / 9, 882) * 9, lean = (hash1(x / 9, 883) - 0.5) * 5 - 2 + Math.sin(gtime * 2.2 + x * 0.05) * 1.6;
+      ctx.moveTo(bx - 1.5, y); ctx.lineTo(bx + lean, y - bh); ctx.lineTo(bx + 1.5, y); ctx.closePath();
+    }
+    for (const [dx, r] of [[34, 4], [58, 6.5], [66, 3.5], [112, 5]]) { const x = E - dx, y = cliffTopY(x) + 2; ctx.moveTo(x - r, y); ctx.arc(x, y, r, Math.PI, 0); ctx.closePath(); }
+    ctx.fillStyle = top; ctx.fill();
+    // the windsock that tells him the air is right
+    const px = E - 84, py = cliffTopY(px) + 2, ph = 62;
+    ctx.strokeStyle = css(mix(pal.near, BLACK, 0.4)); ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, py - ph); ctx.stroke();
+    const seg = 5, L = 34;
+    for (let q = 0; q < seg; q++) {
+      const t0 = q / seg, t1 = (q + 1) / seg;
+      const at = (t) => [px - 2 - t * L, py - ph + 5 + t * t * 7 + Math.sin(gtime * 6 - t * 5) * 2.4 * t];
+      const a = at(t0), b = at(t1), w0 = 5.5 - t0 * 3, w1 = 5.5 - t1 * 3;
+      ctx.beginPath(); ctx.moveTo(a[0], a[1] - w0); ctx.lineTo(b[0], b[1] - w1); ctx.lineTo(b[0], b[1] + w1); ctx.lineTo(a[0], a[1] + w0); ctx.closePath();
+      ctx.fillStyle = css(mix(q % 2 ? [246, 240, 228] : [232, 96, 70], pal.light, pal.la * 0.6)); ctx.fill();
+    }
+  }
   function obsGrad(o) {
     const lightX = (sun.a >= moon.a ? sun.x : moon.x) + camX;
     const left = lightX < o.x;
@@ -4462,7 +4581,7 @@ void main() {
     }
   }
   function drawTrail() {
-    if (bird.tn < 3 || (bird.dead && bird.grounded)) return;
+    if (bird.tn < 3 || (bird.dead && bird.grounded) || state === 'menu') return;
     let col = '255,255,255', base = 0.32;
     if (sk.dash.t > 0) { col = '255,214,122'; base = 0.7; }
     else if (shieldOn()) { col = '150,235,255'; base = 0.5; }
@@ -4555,9 +4674,10 @@ void main() {
   const SCARF_N = 13, SCARF_SEG = 3.3;
   const scarf = { x: new Float64Array(SCARF_N), y: new Float64Array(SCARF_N), px: new Float64Array(SCARF_N), py: new Float64Array(SCARF_N), t: -1 };
   const scarfPts = new Float32Array(SCARF_N * 2);
-  function stepScarf() {
+  function stepScarf(at) {
     const ca = Math.cos(bird.ang), sa = Math.sin(bird.ang), k = 0.95;
-    const ax = bird.x + (8.5 * ca + 3.6 * sa) * k, ay = bird.y + (8.5 * sa - 3.6 * ca) * k;
+    const ax = bird.x + (at[0] * ca - at[1] * sa) * k, ay = bird.y + (at[0] * sa + at[1] * ca) * k;
+    const moving = clamp((bird.speed - 30) / 200, 0, 1);
     let dt = gtime - scarf.t;
     if (scarf.t < 0 || dt < 0 || dt > 0.25 || Math.hypot(scarf.x[0] - ax, scarf.y[0] - ay) > 160) {
       // lay it out straight behind him
@@ -4572,7 +4692,8 @@ void main() {
       for (let i = 1; i < SCARF_N; i++) {
         const vx = (scarf.x[i] - scarf.px[i]) * f, vy = (scarf.y[i] - scarf.py[i]) * f;
         scarf.px[i] = scarf.x[i]; scarf.py[i] = scarf.y[i];
-        scarf.x[i] += vx; scarf.y[i] += vy + 520 * h * h;
+        // standing still, only the breeze on the cliff top carries it
+        scarf.x[i] += vx - 620 * (1 - moving) * h * h; scarf.y[i] += vy + 520 * h * h;
         const gy = groundY(scarf.x[i]) - 1.5;
         if (scarf.y[i] > gy) { scarf.y[i] = gy; scarf.px[i] = scarf.x[i]; }
       }
@@ -4585,16 +4706,16 @@ void main() {
       }
     }
     // into the flyer's own frame, with the flutter the wind puts on the cloth
-    const moving = clamp((bird.speed - 30) / 200, 0, 1);
+    const flap = Math.max(moving, 0.3);
     for (let i = 0; i < SCARF_N; i++) {
       const rx = (scarf.x[i] - bird.x) / k, ry = (scarf.y[i] - bird.y) / k, t = i / (SCARF_N - 1);
       scarfPts[i * 2] = rx * ca + ry * sa;
       // the slipstream over his back lifts the cloth clear of the body
-      scarfPts[i * 2 + 1] = -rx * sa + ry * ca - Math.sin(Math.min(1, t * 1.8) * Math.PI * 0.5) * 6.5 * moving + (Math.sin(gtime * 11 - i * 0.85) * 3.2 + Math.sin(gtime * 17.3 - i * 1.5) * 1.1) * t * moving;
+      scarfPts[i * 2 + 1] = -rx * sa + ry * ca - Math.sin(Math.min(1, t * 1.8) * Math.PI * 0.5) * 6.5 * moving + (Math.sin(gtime * 11 - i * 0.85) * 3.2 + Math.sin(gtime * 17.3 - i * 1.5) * 1.1) * t * flap;
     }
   }
-  function drawScarf(c) {
-    stepScarf();
+  function drawScarf(c, at) {
+    stepScarf(at);
     const n = SCARF_N, P = scarfPts, col = LOOK.scarf;
     const up = new Float32Array(n * 2), lo = new Float32Array(n * 2), tw = new Float32Array(n);
     for (let i = 0; i < n; i++) {
@@ -4729,12 +4850,20 @@ void main() {
     const armN = seg2(6.5, 2, (sitting ? Math.PI + 0.3 : hanging ? -0.15 : -1.0) + Math.sin(tt * 11 + 2.7) * 2.1 * amp, 8, (sitting ? -0.2 : hanging ? -0.4 : 0.8) + Math.sin(tt * 14 + 1) * 0.6 * amp, 7.5);
     const legF = seg2(-10, 0.5, (sitting ? Math.PI / 2 - 0.1 : Math.PI - 0.15) + Math.sin(tt * 9 + 0.5) * 1.3 * amp, 10, (sitting ? 0.65 : -0.5) - (0.5 + 0.5 * Math.sin(tt * 13)) * 1.4 * amp, 10);
     const legN = seg2(-10, 3.5, (sitting ? Math.PI / 2 + 0.05 : Math.PI + 0.1) + Math.sin(tt * 9 + 3.4) * 1.3 * amp, 10, (sitting ? 0.55 : -0.4) - (0.5 + 0.5 * Math.sin(tt * 12 + 2)) * 1.4 * amp, 10);
-    const handF = wing ? bf : [armF[4], armF[5]], handN = wing ? bn : [armN[4], armN[5]];
+    // standing on the cliff the whole figure swings upright under the hang point, hands up on the down tubes
+    const st = wing ? standK : 0, lean = -1.2 * st, pv = [-2 - 2 * st, -3 + 5 * st];
+    const pc = Math.cos(lean), ps = Math.sin(lean);
+    const poseOn = () => { c.save(); if (st > 0.001) { c.translate(pv[0], pv[1]); c.rotate(lean); c.translate(2, 3); } };
+    const toBody = (q) => { const dx = q[0] - pv[0], dy = q[1] - pv[1]; return [-2 + dx * pc + dy * ps, -3 - dx * ps + dy * pc]; };
+    const fromBody = (q) => { const dx = q[0] + 2, dy = q[1] + 3; return [pv[0] + dx * pc - dy * ps, pv[1] + dx * ps + dy * pc]; };
+    const grip = (bar) => toBody([lerp(bar[0], apex[0], 0.5 * st), lerp(bar[1], apex[1], 0.5 * st)]);
+    const handF = wing ? grip(bf) : [armF[4], armF[5]], handN = wing ? grip(bn) : [armN[4], armN[5]];
     const stick = (q, w1) => { c.lineWidth = w1; c.beginPath(); c.moveTo(q[0], q[1]); c.lineTo(q[2], q[3]); c.lineTo(q[4], q[5]); c.stroke(); };
     const boot = (q, col) => { const a = Math.atan2(q[5] - q[3], q[4] - q[2]); c.fillStyle = col; c.beginPath(); c.ellipse(q[4], q[5], 3.9, 2.5, a, 0, TAU); c.fill(); };
     if (person) {
     // hang strap to the keel and the far arm, both behind the body
-    if (wing) { c.strokeStyle = '#3b2c22'; c.lineWidth = 1.4; c.beginPath(); c.moveTo(hang[0], hang[1]); c.lineTo(-2, -3); c.stroke(); }
+    if (wing) { c.strokeStyle = '#3b2c22'; c.lineWidth = 1.4; c.beginPath(); c.moveTo(hang[0], hang[1]); c.lineTo(pv[0], pv[1]); c.stroke(); }
+    poseOn();
     c.strokeStyle = LOOK.arm[0]; c.lineWidth = 3.2;
     if (wing) { c.beginPath(); c.moveTo(6, -1.5); c.quadraticCurveTo((6 + handF[0]) / 2 + 1, (-1.5 + handF[1]) / 2 - 3, handF[0], handF[1]); c.stroke(); }
     else stick(armF, 3.2);
@@ -4743,7 +4872,7 @@ void main() {
       c.strokeStyle = '#37415b'; stick(legN, 5.2); boot(legN, '#6b4529');
     } else {
     // legs trailing in the harness, boots together
-    const kick = Math.sin(ph * 0.9) * 0.8;
+    const kick = Math.sin(ph * 0.9) * 0.8 * (1 - st);
     c.strokeStyle = '#2a3247'; c.lineWidth = 4.8;
     c.beginPath(); c.moveTo(-10, 0.5); c.quadraticCurveTo(-20, 0, -28, -0.5 + kick); c.stroke();
     c.strokeStyle = '#37415b'; c.lineWidth = 5.2;
@@ -4757,7 +4886,9 @@ void main() {
     c.beginPath(); c.moveTo(-8, -3.4); c.lineTo(-6, 6.4); c.moveTo(4, -3.6); c.lineTo(2.5, 6.6); c.moveTo(-12, 3); c.lineTo(5, 3.4); c.stroke();
     c.fillStyle = '#c9ccd4'; c.beginPath(); c.arc(-2, -3, 1.4, 0, TAU); c.fill();
     // scarf streaming behind
-    drawScarf(c);
+    c.restore();
+    drawScarf(c, fromBody([8.5, -3.6]));
+    poseOn();
     // head: helmet and goggles, looking ahead
     c.fillStyle = '#e4b892'; c.beginPath(); c.arc(12.5, -1.2, 4.9, 0, TAU); c.fill();
     c.fillStyle = LOOK.helmet;
@@ -4771,6 +4902,7 @@ void main() {
     if (!bird.dead) { c.fillStyle = '#ffffff'; c.beginPath(); c.arc(16.3, -2.8, 0.45, 0, TAU); c.fill(); }
     c.fillStyle = '#d9a47c';
     c.beginPath(); c.moveTo(17.2, -0.4); c.lineTo(18.4, 1); c.lineTo(16.8, 1.4); c.closePath(); c.fill();
+    c.restore();
     }
     // near down tube and base bar in front of him, the near arm on the bar
     if (wing) {
@@ -4778,11 +4910,13 @@ void main() {
       c.beginPath(); c.moveTo(apex[0], apex[1]); c.lineTo(bn[0], bn[1]); c.lineTo(bf[0], bf[1]); c.stroke();
     }
     if (person) {
+      poseOn();
       c.strokeStyle = LOOK.arm[1]; c.lineWidth = 3.6;
       if (wing) { c.beginPath(); c.moveTo(6.5, 2); c.quadraticCurveTo((6.5 + handN[0]) / 2, (2 + handN[1]) / 2 + 2.5, handN[0], handN[1]); c.stroke(); }
       else stick(armN, 3.6);
       c.fillStyle = '#e4b892';
       c.beginPath(); c.moveTo(handN[0] + 1.9, handN[1]); c.arc(handN[0], handN[1], 1.9, 0, TAU); c.moveTo(handF[0] + 1.6, handF[1]); c.arc(handF[0], handF[1], 1.6, 0, TAU); c.fill();
+      c.restore();
     }
     // ambient tint so the flyer belongs to the light of the scene
     const la = pal.la * 0.7;
@@ -5144,6 +5278,7 @@ void main() {
     ctx.translate(-camX, 0);
     drawObstacles(true);
     drawGround();
+    drawCliff();
     drawObstacles(false);
     drawItems(false);
     drawPortal(false);
@@ -5192,7 +5327,8 @@ void main() {
     for (let i = 0; i < 7; i++) clouds.push(makeCloud(0, true));
     for (let i = 0; i < 4; i++) clouds.push(makeCloud(1, true));
     for (let i = 0; i < 18; i++) lines.push({ x: rand(0, W), y: rand(60, 640), len: rand(60, 180), sp: rand(1600, 2600) });
-    bird.y = groundY(0) - 240;
+    placeCliff();
+    bird.frac = MENU_FRAC();
     camX = bird.x - W * bird.frac;
     computePalette(dayT, 0);
     retintClouds();
