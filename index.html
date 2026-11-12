@@ -150,7 +150,11 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .touch-hint { display: none; margin: 10px 0 0; font-size: 12.5px; color: var(--ink-soft); }
 @media (pointer: coarse) { .touch-hint { display: block; } }
 
-.result { width: min(470px, 100%); }
+.result { width: min(470px, 100%); max-height: calc(100vh - 96px); overflow-y: auto; }
+.result .big { font-size: clamp(44px, 7vw, 72px); }
+.result .stats { margin-top: 14px; gap: 10px 22px; }
+.result .stats dd { font-size: 20px; }
+@media (max-height: 860px) { .result .tip { display: none; } }
 .big { font: 300 clamp(54px, 9vw, 98px)/1 var(--f-display); letter-spacing: 0.02em; font-variant-numeric: tabular-nums; }
 .record { display: inline-block; margin: 12px 0 0; padding: 6px 11px 5px; border-radius: 999px; background: var(--gold); color: var(--deep); font: 800 11px/1 var(--f-body); letter-spacing: 0.2em; text-transform: uppercase; }
 .stats { margin: 20px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; }
@@ -166,6 +170,25 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .purse svg { width: 15px; height: 15px; fill: var(--gold); }
 .earned { margin: 14px 0 0; font-size: 13.5px; color: var(--ink-soft); }
 .earned b { color: var(--gold); }
+/* account level + missions */
+.prog { margin-top: 22px; max-width: 440px; font-size: 13px; color: var(--ink-soft); }
+.result .prog { margin-top: 16px; max-width: none; }
+.prog .lvl { display: flex; align-items: center; gap: 10px; }
+.prog .lv { font-weight: 800; letter-spacing: 0.06em; color: var(--gold); white-space: nowrap; }
+.prog .xp { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.prog .bar { flex: 1; height: 6px; border-radius: 99px; background: rgba(255, 255, 255, 0.16); overflow: hidden; }
+.prog .bar b { display: block; height: 100%; border-radius: 99px; background: var(--gold); }
+.prog .lvup { margin: 8px 0 0; font-weight: 800; color: var(--gold); letter-spacing: 0.04em; }
+.prog h3 { margin: 14px 0 6px; font: 800 11px/1 var(--f-body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+.quests { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.quests li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 3px 12px; }
+.quests .qt { color: var(--ink); }
+.quests .qx { font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.quests .bar { grid-column: 1 / -1; height: 4px; }
+.quests .qp { font-variant-numeric: tabular-nums; color: var(--ink-soft); margin-left: 8px; }
+.quests li.done .qt { color: var(--gold); }
+.quests li.wait .qt { color: var(--ink-soft); }
+@media (max-height: 640px) { .prog { margin-top: 12px; } .prog h3 { margin-top: 8px; } }
 .shop { width: min(860px, 100%); max-height: calc(100vh - 120px); display: flex; flex-direction: column; gap: 16px; }
 .shop-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .shop-head h2 { margin: 0; font: 300 34px/1 var(--f-display); letter-spacing: 0.08em; }
@@ -236,7 +259,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   <div class="hud" id="hud" hidden>
     <div class="hud-tl">
       <div class="score" id="score">0</div>
-      <div class="meta"><span id="dist">0</span> m · <span id="feathers">0</span> tüy</div>
+      <div class="meta">Sv <span id="hudLvl">1</span> · <span id="dist">0</span> m · <span id="feathers">0</span> tüy</div>
       <div class="combo" id="combo" hidden><span class="m" id="mult">×2</span><i><b id="comboFill"></b></i></div>
     </div>
     <div class="skills" id="skills">
@@ -269,6 +292,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
         <span class="best-line">En iyi skor <b id="menuBest">0</b></span>
         <span class="purse" title="Tüy kesesi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 3c-6 0-12 4-14 11l-2 7 2-1 2-5c4 0 9-3 11-8-2 1-4 1-5 1 2-1 4-3 6-5z"/></svg><span id="menuPurse">0</span></span>
       </div>
+      <div class="prog" id="menuProg"></div>
     </div>
     <aside class="card controls" aria-label="Kontroller">
       <h2>Kontroller</h2>
@@ -333,6 +357,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
         <div><dt>En yüksek kombo</dt><dd id="stCombo">×1</dd></div>
       </dl>
       <p class="earned" id="earned"></p>
+      <div class="prog" id="overProg"></div>
       <p class="tip" id="tip"></p>
       <div class="row">
         <button class="cta" id="btnRetry" type="button">Tekrar uç <span class="kbd dark">Space</span></button>
@@ -1253,10 +1278,12 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     { id: 'shield', name: 'Işık kalkanı', key: 'D' },
     { id: 'slow', name: 'Zamanı yavaşlat', key: 'F' },
   ];
-  const UP_COST = [100, 250, 500, 900], UP_MAX = 4;
+  const UP_COST = [300, 750, 1500, 2700], UP_MAX = 4;
+  // everything in the workshop has to be saved up for
+  for (const k of Object.keys(CAT)) for (const it of CAT[k]) it.price *= 3;
   const SK_BASE = {};
   for (const n of SKILL_NAMES) SK_BASE[n] = { dur: SK[n].dur, cd: SK[n].cd };
-  const save = { purse: 0, owned: { sail: ['klasik'], scarf: ['kirmizi'], suit: ['mavi'], pilot: ['ruzgar'] }, equip: { sail: 'klasik', scarf: 'kirmizi', suit: 'mavi', pilot: 'ruzgar' }, up: { dash: 0, shield: 0, slow: 0 } };
+  const save = { purse: 0, owned: { sail: ['klasik'], scarf: ['kirmizi'], suit: ['mavi'], pilot: ['ruzgar'] }, equip: { sail: 'klasik', scarf: 'kirmizi', suit: 'mavi', pilot: 'ruzgar' }, up: { dash: 0, shield: 0, slow: 0 }, xp: 0, quests: [] };
   try {
     const raw = JSON.parse(localStorage.getItem('suzulus-save') || 'null');
     if (raw && typeof raw === 'object') {
@@ -1266,9 +1293,86 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
         if (raw.equip && save.owned[k].includes(raw.equip[k])) save.equip[k] = raw.equip[k];
       }
       if (raw.up) for (const n of SKILL_NAMES) save.up[n] = clamp(raw.up[n] | 0, 0, UP_MAX);
+      if (Number.isFinite(raw.xp)) save.xp = Math.max(0, raw.xp | 0);
+      if (Array.isArray(raw.quests)) save.quests = raw.quests.filter((q) => q && typeof q.k === 'string' && q.goal > 0 && q.xp > 0 && Number.isFinite(q.p)).slice(0, 3).map((q) => ({ k: q.k, goal: q.goal | 0, xp: q.xp | 0, p: Math.max(0, q.p), wait: !!q.wait }));
     }
   } catch (e) { /* fresh save */ }
   function persist() { try { localStorage.setItem('suzulus-save', JSON.stringify(save)); } catch (e) { /* ignore */ } }
+  /* account level: missions pay XP, XP raises the level, the level raises the speed a flight starts at */
+  const LVL_MAX = 40;
+  const xpNeed = (l) => 80 + 40 * (l - 1);
+  function levelInfo() {
+    let l = 1, x = save.xp;
+    while (l < LVL_MAX && x >= xpNeed(l)) { x -= xpNeed(l); l++; }
+    return { l, x, need: xpNeed(l), max: l >= LVL_MAX };
+  }
+  // goal and reward by tier; "one" missions must be done within a single flight
+  const QUESTS = {
+    dist: { t: (g) => `Toplam ${fmt(g)} m uç`, goal: [1500, 3000, 5000, 8000], xp: [40, 70, 100, 150] },
+    feather: { t: (g) => `${g} altın tüy topla`, goal: [40, 80, 140, 220], xp: [40, 70, 100, 140] },
+    ring: { t: (g) => `${g} rüzgar halkasından geç`, goal: [8, 15, 25, 40], xp: [40, 65, 95, 130] },
+    thermal: { t: (g) => `${g} hava akımı yakala`, goal: [4, 8, 14, 20], xp: [35, 60, 90, 120] },
+    near: { t: (g) => `${g} kıl payı geçiş yap`, goal: [5, 10, 18, 30], xp: [45, 75, 110, 150] },
+    portal: { t: (g) => `${g} portaldan geç`, goal: [1, 2, 3, 5], xp: [40, 70, 100, 150] },
+    skill: { t: (g) => `Yetenekleri ${g} kez kullan`, goal: [6, 12, 20, 30], xp: [30, 50, 75, 100] },
+    oneDist: { one: true, t: (g) => `Tek uçuşta ${fmt(g)} m uç`, goal: [400, 700, 1100, 1600], xp: [45, 80, 120, 170] },
+    oneScore: { one: true, t: (g) => `Tek uçuşta ${fmt(g)} puan yap`, goal: [1500, 4000, 8000, 15000], xp: [45, 80, 120, 170] },
+    oneCombo: { one: true, t: (g) => `Tek uçuşta ×${g} komboya ulaş`, goal: [3, 4, 5, 6], xp: [45, 75, 110, 150] },
+  };
+  const questDone = []; // missions finished during the current flight
+  let questM = 0, runLvl = 1, lvlAtStart = 1;
+  function newQuest(wait) {
+    const kinds = Object.keys(QUESTS).filter((k) => !save.quests.some((q) => q.k === k));
+    const k = kinds[(Math.random() * kinds.length) | 0];
+    const tier = clamp(Math.floor((levelInfo().l - 1) / 4) - (Math.random() < 0.3 ? 1 : 0), 0, 3);
+    return { k, goal: QUESTS[k].goal[tier], xp: QUESTS[k].xp[tier], p: 0, wait: !!wait };
+  }
+  save.quests = save.quests.filter((q) => QUESTS[q.k]);
+  while (save.quests.length < 3) save.quests.push(newQuest(false));
+  function finishQuest(i) {
+    const q = save.quests[i], before = levelInfo().l;
+    save.xp += q.xp;
+    questDone.push({ text: QUESTS[q.k].t(q.goal), xp: q.xp });
+    // the next mission takes this one's place and starts counting on the following flight
+    save.quests[i] = newQuest(true);
+    persist();
+    popup(`Görev tamamlandı  +${q.xp} XP`, '#ffd27a', true);
+    const now = levelInfo().l;
+    if (now > before) { popup(`Seviye ${now}`, '#ffffff', true); el.hudLvl.textContent = String(now); }
+    Sound.record();
+  }
+  // count n more toward every running mission of this kind
+  function quest(kind, n = 1) {
+    if (state !== 'play') return;
+    for (let i = 0; i < save.quests.length; i++) {
+      const q = save.quests[i];
+      if (q.k !== kind || q.wait) continue;
+      q.p = Math.min(q.goal, q.p + n);
+      if (q.p >= q.goal) finishQuest(i);
+    }
+  }
+  // single-flight missions keep the best value reached in this flight
+  function questMax(kind, v) {
+    for (let i = 0; i < save.quests.length; i++) {
+      const q = save.quests[i];
+      if (q.k !== kind || q.wait || v <= q.p) continue;
+      q.p = Math.min(q.goal, v);
+      if (q.p >= q.goal) finishQuest(i);
+    }
+  }
+  function progHTML(over) {
+    const L = levelInfo(), esc = (t) => t.replace(/</g, '&lt;');
+    let h = `<div class="lvl"><span class="lv">Seviye ${L.l}</span><i class="bar"><b style="width:${L.max ? 100 : Math.round((L.x / L.need) * 100)}%"></b></i><span class="xp">${L.max ? 'En üst seviye' : `${fmt(L.x)} / ${fmt(L.need)} XP`}</span></div>`;
+    if (over && L.l > lvlAtStart) h += `<p class="lvup">Seviye atladın: ${L.l}. seviye · başlangıç hızın arttı</p>`;
+    h += '<h3>Görevler</h3><ul class="quests">';
+    if (over) for (const d of questDone) h += `<li class="done"><span class="qt">✓ ${esc(d.text)}</span><span class="qx">+${d.xp} XP</span></li>`;
+    for (const q of save.quests) {
+      const shown = Math.floor(q.p);
+      h += `<li${q.wait && over ? ' class="wait"' : ''}><span class="qt">${esc(QUESTS[q.k].t(q.goal))}<span class="qp">${q.wait && over ? 'yeni' : `${fmt(shown)} / ${fmt(q.goal)}`}</span></span><span class="qx">${q.xp} XP</span><i class="bar"><b style="width:${Math.round((q.p / q.goal) * 100)}%"></b></i></li>`;
+    }
+    return h + '</ul>';
+  }
+  function showProg() { $('menuProg').innerHTML = progHTML(false); $('overProg').innerHTML = progHTML(true); }
   const pick = (k) => CAT[k].find((x) => x.id === save.equip[k]) || CAT[k][0];
   const pilotStat = () => pick('pilot');
   // upgrade levels: +15% duration and -10% cooldown per level
@@ -1305,7 +1409,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
      ========================================================= */
   const el = {
     hud: $('hud'), score: $('score'), dist: $('dist'), feathers: $('feathers'), combo: $('combo'), mult: $('mult'), comboFill: $('comboFill'),
-    phase: $('phase'), menu: $('menu'), pause: $('pause'), over: $('over'), menuBest: $('menuBest'),
+    hudLvl: $('hudLvl'), phase: $('phase'), menu: $('menu'), pause: $('pause'), over: $('over'), menuBest: $('menuBest'),
     hudBest: $('hudBest'), hudBestWrap: $('hudBestWrap'), btnPause: $('btnPause'), btnMute: $('btnMute'),
     earned: $('earned'), finalScore: $('finalScore'), record: $('record'), stDist: $('stDist'), stFeathers: $('stFeathers'), stRings: $('stRings'), stCombo: $('stCombo'), tip: $('tip'),
   };
@@ -1504,7 +1608,9 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   /* patterns */
   const difficulty = () => clamp(dist / 60000, 0, 1);
   // 300 at the start, ~450 after 3 km, ~620 after 10 km, easing toward 720
-  const cruiseSpeed = () => 300 + 420 * (1 - Math.exp(-dist / 70000));
+  // a flight starts faster the higher the account level, and keeps gathering speed with every kilometre
+  const startSpeed = () => 300 + 6 * (Math.min(runLvl, 31) - 1);
+  const cruiseSpeed = () => { const s0 = startSpeed(); return s0 + (740 + 3 * (runLvl - 1) - s0) * (1 - Math.exp(-dist / 45000)); };
   const PATTERNS = {
     trees(x, d) {
       const n = rint(1, d > 0.4 ? 3 : 2);
@@ -1625,6 +1731,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     combo = Math.min(combo + 1, 9);
     comboTimer = 6.5;
     maxCombo = Math.max(maxCombo, combo + 1);
+    questMax('oneCombo', combo + 1);
     el.combo.classList.remove('pop'); void el.combo.offsetWidth; el.combo.classList.add('pop');
   }
   const mult = () => 1 + combo;
@@ -1641,6 +1748,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     }
     s.t = def.dur;
     s.cd = def.dur + def.cd;
+    quest('skill');
     if (name === 'dash') { Sound.dash(); sparks(bird.x - 10, bird.y, 14, 'gold', 260); shock(bird.x, bird.y, 'rgba(255,214,130,', 70); }
     else if (name === 'shield') { Sound.shield(); shock(bird.x, bird.y, 'rgba(150,235,255,', 50); }
     else if (name === 'slow') { Sound.slow(true); shock(bird.x, bird.y, 'rgba(200,185,255,', 90); }
@@ -1684,7 +1792,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   function collect(it) {
     it.taken = true; it.t = 0;
     if (it.type === 'feather') {
-      featherCount++;
+      featherCount++; quest('feather');
       featherChain = gtime - lastFeatherT < 1.1 ? featherChain + 1 : 0;
       lastFeatherT = gtime;
       addScore(10 * mult());
@@ -1702,7 +1810,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   }
   function ringPass(it) {
     it.ok = true;
-    ringCount++;
+    ringCount++; quest('ring');
     bumpCombo();
     if (it.slow) {
       // a headwind through the ring brakes the glider at once
@@ -1728,6 +1836,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     Sound.ring();
   }
   function nearMiss() {
+    quest('near');
     bumpCombo();
     const pts = 60 * mult();
     addScore(pts);
@@ -1746,7 +1855,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     bird.dead = false; bird.grounded = false; bird.spin = 0; glider = null; chute = null;
     bird.y = Math.min(bird.y, groundY(bird.x) - 220);
     if (bird.y < 120) bird.y = 260;
-    bird.vy = 0; bird.speed = Math.max(bird.speed, 260); bird.inv = 1.6; bird.ang = 0;
+    bird.vy = 0; bird.inv = 1.6; bird.ang = 0;
     score = 0; dist = 0; startX = bird.x; featherCount = 0; ringCount = 0; thermalCount = 0; combo = 0; comboTimer = 0; maxCombo = 1;
     applyUpgrades();
     bestAtStart = best; bestAnnounced = false; ringBoost = 0; ringSlow = 0;
@@ -1754,6 +1863,10 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     spawnX = bird.x + W * 0.95;
     lastPattern = ''; samePattern = 0;
     resetBiome();
+    runLvl = lvlAtStart = levelInfo().l; questM = 0; questDone.length = 0;
+    for (const q of save.quests) { q.wait = false; if (QUESTS[q.k].one) q.p = 0; }
+    el.hudLvl.textContent = String(runLvl);
+    bird.speed = Math.max(bird.speed, startSpeed() * 0.87);
     state = 'play';
     timeScale = 1;
     hideScreens();
@@ -1781,7 +1894,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     save.purse += earned;
     persist();
     el.earned.innerHTML = `Kesene <b>+${fmt(earned)} tüy</b> eklendi · toplam <b>${fmt(save.purse)}</b>`;
-    updatePurse();
+    updatePurse(); showProg();
     el.menuBest.textContent = fmt(best);
     el.hud.hidden = true; el.btnPause.hidden = true; el.hudBestWrap.hidden = true;
     el.over.hidden = false;
@@ -1795,6 +1908,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     hideScreens();
     el.hud.hidden = true; el.btnPause.hidden = true; el.hudBestWrap.hidden = true;
     el.menuBest.textContent = fmt(best);
+    persist(); showProg();
     el.menu.hidden = false;
   }
   function pauseGame() {
@@ -1997,7 +2111,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     }
     if (p.used) { p.t += dt; return; }
     if (bird.prevX < p.x && bird.x >= p.x && Math.abs(bird.y - portalY(p)) < PORTAL_RY * 0.94) {
-      p.used = true;
+      p.used = true; quest('portal');
       biome.idx++;
       biome.target = p.to;
     }
@@ -2132,7 +2246,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
         bumpCombo();
         const pts = 40 * mult();
         addScore(pts);
-        thermalCount++;
+        thermalCount++; quest('thermal');
         popup(`Hava akımı  +${pts}`, '#ffe6b0');
         Sound.thermal();
       }
@@ -2215,6 +2329,11 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
       if (state !== 'play') break;
     }
     dist = bird.x - startX;
+    if (state === 'play') {
+      const m = Math.floor(dist / 10);
+      if (m > questM) { quest('dist', m - questM); questM = m; questMax('oneDist', m); }
+      questMax('oneScore', Math.floor(score));
+    }
     if (!bestAnnounced && bestAtStart > 0 && score > bestAtStart) {
       bestAnnounced = true;
       popup('Yeni rekor', '#ffd27a', true);
@@ -4931,6 +5050,7 @@ void main() {
     camX = bird.x - W * bird.frac;
     computePalette(dayT, 0);
     retintClouds();
+    showProg();
     requestAnimationFrame((t) => { last = t; frame(t); });
   }
   boot();
