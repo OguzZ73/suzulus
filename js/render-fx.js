@@ -381,7 +381,76 @@ function capturePortal() {
   [CITY, CANYON, POLAR, VOLCANO, cityK, canyonK, polarK, volcK] = was;
   for (const k in keep) { const v = keep[k], o = pal[k]; if (Array.isArray(v) && Array.isArray(o)) { o[0] = v[0]; o[1] = v[1]; o[2] = v[2]; } else pal[k] = v; }
 }
+/* ---- biome wave: after a portal the new country washes outward from it in a wavy ring ---- */
+const WAVE_DUR = 1.9;
+const waveC = document.createElement('canvas'), waveCtx = waveC.getContext('2d');
+let bwave = null;
+function startBiomeWave(from, to, x, y) { bwave = { from, to, x, y, t: 0, last: performance.now() }; }
+const waveEase = (k) => 1 - Math.pow(1 - k, 1.6);
+// paint the old country (sky, ranges and ground) into waveC with this frame's camera
+function captureWave() {
+  if (!bwave) return;
+  const now = performance.now();
+  bwave.t += Math.min(0.12, (now - bwave.last) / 1000) * (state === 'paused' ? 0 : 1);
+  bwave.last = now;
+  if (bwave.t >= WAVE_DUR || state === 'menu') { bwave = null; return; }
+  const keep = {}, was = [CITY, CANYON, POLAR, VOLCANO, cityK, canyonK, polarK, volcK];
+  for (const k in pal) keep[k] = Array.isArray(pal[k]) ? pal[k].slice() : pal[k];
+  setBiomeFlags(bwave.from);
+  computePalette(dayT, POLAR ? 0 : stormAmt());
+  biomeTint();
+  ctx.setTransform(scale, 0, 0, scale, 0, -viewTop * scale);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  drawBackdrop();
+  ctx.save(); ctx.translate(-camX, 0); drawGround(); ctx.restore();
+  if (waveC.width !== cvs.width || waveC.height !== cvs.height) { waveC.width = cvs.width; waveC.height = cvs.height; }
+  waveCtx.drawImage(cvs, 0, 0);
+  [CITY, CANYON, POLAR, VOLCANO, cityK, canyonK, polarK, volcK] = was;
+  for (const k in keep) { const v = keep[k], o = pal[k]; if (Array.isArray(v) && Array.isArray(o)) { o[0] = v[0]; o[1] = v[1]; o[2] = v[2]; } else pal[k] = v; }
+}
+// the ring's edge: a few slow swells and a quicker ripple, all drifting round as it grows
+function wavePath(c, cx, cy, r, t) {
+  const n = 96;
+  c.moveTo(cx + r, cy);
+  for (let i = 0; i <= n; i++) {
+    const a = (i / n) * TAU;
+    const w = 1 + 0.11 * Math.sin(a * 5 + t * 3.1) + 0.06 * Math.sin(a * 9 - t * 4.7) + 0.035 * Math.sin(a * 17 + t * 7);
+    c.lineTo(cx + Math.cos(a) * r * w, cy + Math.sin(a) * r * w);
+  }
+  c.closePath();
+}
+// in device pixels: the old country outside the ring, a glowing crest on its edge
+function drawBiomeWave() {
+  if (!bwave || !waveC.width) return;
+  const k = bwave.t / WAVE_DUR;
+  const cx = (bwave.x - camX) * scale, cy = (bwave.y - viewTop) * scale;
+  const far = Math.max(Math.hypot(cx, cy), Math.hypot(cvs.width - cx, cy), Math.hypot(cx, cvs.height - cy), Math.hypot(cvs.width - cx, cvs.height - cy));
+  const r = 6 * scale + waveEase(k) * far * 1.5;
+  const col = PORTAL_RGB[bwave.to].join(',');
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  ctx.beginPath();
+  ctx.rect(0, 0, cvs.width, cvs.height);
+  wavePath(ctx, cx, cy, r, bwave.t);
+  ctx.save(); ctx.clip('evenodd'); ctx.drawImage(waveC, 0, 0); ctx.restore();
+  // the crest: a soft wide glow and a bright thin line, fading as the ring leaves the screen
+  const fade = 1 - Math.max(0, (k - 0.6) / 0.4);
+  ctx.beginPath(); wavePath(ctx, cx, cy, r, bwave.t);
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = `rgba(${col},${0.22 * fade})`; ctx.lineWidth = 22 * scale; ctx.stroke();
+  ctx.strokeStyle = `rgba(${col},${0.4 * fade})`; ctx.lineWidth = 8 * scale; ctx.stroke();
+  ctx.strokeStyle = `rgba(255,255,255,${0.75 * fade})`; ctx.lineWidth = 2 * scale; ctx.stroke();
+  // a second, fainter ripple trailing behind the first
+  const r2 = r * 0.72;
+  if (r2 > 10 * scale) {
+    ctx.beginPath(); wavePath(ctx, cx, cy, r2, bwave.t + 1.3);
+    ctx.strokeStyle = `rgba(${col},${0.28 * fade})`; ctx.lineWidth = 3 * scale; ctx.stroke();
+  }
+  ctx.restore();
+}
 function render() {
+  captureWave();
   capturePortal();
   obsFillC = mix(pal.near, pal.far, 0.06);
   rimC = mix(pal.glow, pal.fog, 0.4);
@@ -399,6 +468,10 @@ function render() {
   ctx.translate(-camX, 0);
   drawObstacles(true);
   drawGround();
+  ctx.restore();
+  drawBiomeWave();
+  ctx.save();
+  ctx.translate(-camX, 0);
   drawCliff();
   drawObstacles(false);
   drawGeysers();

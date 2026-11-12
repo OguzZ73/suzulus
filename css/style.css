@@ -523,3 +523,33 @@ html, body { overscroll-behavior: none; }
   .title-word span { animation: none !important; }
   .title-wind { display: none; }
 }
+
+/* phone held sideways: the result card splits in two, the flight on the left, level and missions on the right */
+@media (max-height: 480px) {
+  #over { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left)) !important; }
+  #over[hidden] { display: none; }
+  .result {
+    width: min(780px, 100%); max-height: none; overflow: visible; padding: 14px 20px 16px; margin: auto 0 !important;
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 26px; align-items: start;
+  }
+  .result > * { grid-column: 1; }
+  .result .eyebrow { margin: 0; font-size: 10px; }
+  .result .big { font-size: 40px; line-height: 1; margin-top: 4px; }
+  .result .record { justify-self: start; margin-top: 6px; padding: 4px 9px 3px; font-size: 9.5px; }
+  .result .stats { grid-template-columns: repeat(4, auto); justify-content: space-between; margin-top: 10px; gap: 0 12px; }
+  .result .stats div { padding-top: 6px; }
+  .result .stats dt { font-size: 9px; letter-spacing: 0.12em; }
+  .result .stats dd { font-size: 16px; margin-top: 2px; }
+  .result .earned { margin-top: 8px; font-size: 11.5px; line-height: 1.4; }
+  .result .tip { display: none; }
+  .result .row { margin-top: 12px; gap: 10px; }
+  .result .row .kbd { display: none; }
+  #overProg {
+    grid-column: 2; grid-row: 1 / span 8; align-self: center; margin: 0;
+    padding-left: 22px; border-left: 1px solid var(--edge); font-size: 11.5px;
+  }
+  #overProg h3 { margin: 10px 0 5px; font-size: 9.5px; }
+  #overProg .lvup { margin-top: 5px; font-size: 11px; }
+  #overProg .quests { gap: 5px; }
+  #overProg .quests .bar { height: 3px; }
+}

@@ -57,6 +57,8 @@ function updateBiome(dt) {
   const want = biome.target;
   if (want !== curBiome()) {
     const through = state === 'play' && biome.idx > 0;
+    // the new country spreads out from the gate in a rippling ring; until it arrives the old one stays painted
+    if (through && !RM) startBiomeWave(curBiome(), want, bird.x, bird.y);
     setBiomeFlags(want);
     Sound.setBiome(want);
     // whatever still waits beyond the screen belongs to the old country
