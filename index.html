@@ -1389,7 +1389,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     return mkObs('cactus', { x, gy, h, tw, aw, arms, polys, minX: x - tw - 30, maxX: x + tw + 30 });
   }
   function addPine(x, h) {
-    if (biomeAt(x - startX) === 'canyon') return addCactus(x, h);
+    if (CANYON) return addCactus(x, h);
     const gy = groundY(x), w = h * 0.44;
     return mkObs('pine', { x, gy, h, w, polys: [[x - w * 0.44, gy + 10, x, gy - h + 4, x + w * 0.44, gy + 10]], minX: x - w / 2, maxX: x + w / 2 });
   }
@@ -1608,6 +1608,8 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   function spawnAhead() {
     const d = difficulty();
     while (spawnX < camX + W + 650) {
+      const gate = startX + biome.n * PORTAL_GAP;
+      if (spawnX > gate - 950 && spawnX < gate + 320) { spawnX = gate + 320; continue; }
       const name = pickPattern(d);
       samePattern = name === lastPattern ? samePattern + 1 : 0;
       lastPattern = name;
@@ -1751,6 +1753,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     for (const n of SKILL_NAMES) { sk[n].t = 0; sk[n].cd = 0; }
     spawnX = bird.x + W * 0.95;
     lastPattern = ''; samePattern = 0;
+    resetBiome();
     state = 'play';
     timeScale = 1;
     hideScreens();
@@ -1976,24 +1979,39 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     el.phase.classList.add('show');
     phaseShowT = 4.5;
   }
-  // every 1.8 km a portal stands across the flight path; flying through it swaps the country in one beat
-  const BIOME_LEN = 18000;
-  const biome = { target: 'lakes' };
+  // every 1.2 km a portal hangs in the sky; flying through it swaps the country in one beat, flying past keeps the land as it is
+  const PORTAL_GAP = 12000, PORTAL_RY = 92, PORTAL_RX = 40;
+  const biome = { target: 'lakes', idx: 0, n: 1, portal: null };
   const BIOMES = ['lakes', 'canyon', 'polar'];
   const BIOME_NAMES = { lakes: 'Göller diyarı', canyon: 'Kızıl Kanyon', polar: 'Kutup' };
   const NIGHT_KF = KF.find((k) => k.t === 0.76);
   const curBiome = () => (CANYON ? 'canyon' : POLAR ? 'polar' : 'lakes');
-  const biomeAt = (d) => BIOMES[Math.max(0, Math.floor(d / BIOME_LEN)) % BIOMES.length];
-  // world x of the next portal ahead of the bird
-  const portalX = () => startX + (Math.floor(Math.max(0, dist) / BIOME_LEN) + 1) * BIOME_LEN;
+  function resetBiome() { biome.idx = 0; biome.n = 1; biome.portal = null; biome.target = BIOMES[0]; }
+  const portalY = (p) => p.y + Math.sin(gtime * 1.3 + p.ph) * 5;
+  function updatePortal(dt) {
+    let p = biome.portal;
+    if (p && p.x < camX - 260) { p = biome.portal = null; biome.n++; }
+    if (!p) {
+      const x = startX + biome.n * PORTAL_GAP;
+      p = biome.portal = { x, y: rand(190, groundY(x) - 230), ph: rand(0, TAU), to: BIOMES[(biome.idx + 1) % BIOMES.length], used: false, t: 0 };
+    }
+    if (p.used) { p.t += dt; return; }
+    if (bird.prevX < p.x && bird.x >= p.x && Math.abs(bird.y - portalY(p)) < PORTAL_RY * 0.94) {
+      p.used = true;
+      biome.idx++;
+      biome.target = p.to;
+    }
+  }
   function updateBiome(dt) {
-    if (state === 'play') biome.target = biomeAt(dist);
+    if (state === 'play') updatePortal(dt);
     const want = biome.target;
     if (want !== curBiome()) {
-      const through = state === 'play' && dist >= BIOME_LEN;
+      const through = state === 'play' && biome.idx > 0;
       CANYON = want === 'canyon'; POLAR = want === 'polar';
       canyonK = CANYON ? 1 : 0; polarK = POLAR ? 1 : 0;
       Sound.setBiome(want);
+      // trees still waiting beyond the screen belong to the old country
+      for (let i = obstacles.length - 1; i >= 0; i--) { const o = obstacles[i]; if ((o.type === 'pine' || o.type === 'cactus') && o.minX > camX + W + 40) obstacles.splice(i, 1); }
       // no snow or blossom over the desert, no rain or blossom on the ice
       const bad = CANYON ? ['snow', 'blizzard', 'petals'] : POLAR ? ['rain', 'petals'] : [];
       if (bad.includes(weather.type)) { weather.type = 'clear'; weather.amt = 0; weather.phase = 'hold'; weather.timer = rand(20, 40); wp.length = 0; }
@@ -2002,9 +2020,8 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
         el.phase.textContent = BIOME_NAMES[want];
         el.phase.classList.add('show');
         phaseShowT = 4.5;
-        flash = Math.max(flash, RM ? 0.12 : 0.6);
-        const c = PORTAL_COL[want];
-        shock(bird.x, bird.y, `rgba(${c},`, 150);
+        flash = Math.max(flash, RM ? 0.1 : 0.45);
+        shock(bird.x, bird.y, `rgba(${PORTAL_RGB[want].join(',')},`, 150);
         sparks(bird.x, bird.y, 26, 'white', 320, 2.6);
         Sound.orb();
       }
@@ -4202,50 +4219,119 @@ void main() {
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
   }
-  // the gate between countries: a tall oval of light tinted like the land behind it
-  const PORTAL_COL = { lakes: '130,235,190', canyon: '255,158,88', polar: '160,210,255' };
-  function drawPortal(front) {
-    if (state !== 'play' && state !== 'dying') return;
-    const x = portalX();
-    if (x < camX - 180 || x > camX + W + 180) return;
-    const col = PORTAL_COL[biomeAt(dist + BIOME_LEN)], gy = groundY(x) + 8;
-    const rx = 62, ry = 420, pulse = 0.85 + 0.15 * Math.sin(gtime * 3);
-    const a0 = front ? -Math.PI / 2 : Math.PI / 2, a1 = front ? Math.PI / 2 : Math.PI * 1.5;
-    ctx.save();
-    ctx.beginPath(); ctx.rect(x - 220, viewTop - 60, 440, gy - viewTop + 60); ctx.clip();
-    ctx.translate(x, 320);
-    ctx.lineCap = 'round';
-    if (!front) {
-      // shimmering veil across the opening
-      const g = ctx.createLinearGradient(-rx, 0, rx, 0);
-      g.addColorStop(0, `rgba(${col},0.1)`); g.addColorStop(0.5, `rgba(${col},${0.36 * pulse})`); g.addColorStop(1, `rgba(${col},0.1)`);
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, 0, TAU); ctx.fill();
-      // currents of light circling inward
-      ctx.lineWidth = 2;
-      for (let i = 1; i <= 4; i++) {
-        const k = i / 5;
-        ctx.strokeStyle = `rgba(255,255,255,${0.16 + 0.1 * i})`;
-        ctx.setLineDash([26 + i * 8, 44 + i * 10]);
-        ctx.lineDashOffset = gtime * (70 + i * 30) * (i % 2 ? 1 : -1);
-        ctx.beginPath(); ctx.ellipse(0, 0, rx * k, ry * k, 0, 0, TAU); ctx.stroke();
+  // the gate between countries: a disc of turning light seen at an angle, tinted like the land behind it
+  const PORTAL_RGB = { lakes: [84, 226, 176], canyon: [255, 138, 64], polar: [120, 190, 255] };
+  const portalTex = {};
+  function portalArt(name) {
+    if (portalTex[name]) return portalTex[name];
+    const [r, g, b] = PORTAL_RGB[name], S = 384, R = 128, H = S / 2;
+    const shade = (k, a) => `rgba(${Math.round(r * k)},${Math.round(g * k)},${Math.round(b * k)},${a})`;
+    const tint = (w, a) => `rgba(${Math.round(r + (255 - r) * w)},${Math.round(g + (255 - g) * w)},${Math.round(b + (255 - b) * w)},${a})`;
+    const mk = () => { const c = document.createElement('canvas'); c.width = c.height = S; const x = c.getContext('2d'); x.translate(H, H); x.lineCap = 'round'; return [c, x]; };
+    // halo of light spilling into the air, and the tunnel falling away toward a bright far end
+    const [base, bx] = mk();
+    let gr = bx.createRadialGradient(0, 0, R * 0.85, 0, 0, H);
+    gr.addColorStop(0, shade(1, 0.5)); gr.addColorStop(0.3, shade(1, 0.2)); gr.addColorStop(1, shade(1, 0));
+    bx.fillStyle = gr; bx.fillRect(-H, -H, S, S);
+    gr = bx.createRadialGradient(0, 0, 0, 0, 0, R);
+    gr.addColorStop(0, tint(0.95, 1)); gr.addColorStop(0.07, tint(0.6, 1)); gr.addColorStop(0.2, shade(0.62, 1));
+    gr.addColorStop(0.5, shade(0.2, 1)); gr.addColorStop(0.78, shade(0.1, 1)); gr.addColorStop(0.93, shade(0.36, 1)); gr.addColorStop(1, shade(0.9, 1));
+    bx.fillStyle = gr; bx.beginPath(); bx.arc(0, 0, R, 0, TAU); bx.fill();
+    // arms of light winding down the tunnel
+    const [swirl, sx] = mk();
+    sx.beginPath(); sx.arc(0, 0, R - 1, 0, TAU); sx.clip();
+    sx.globalCompositeOperation = 'lighter';
+    try { sx.filter = 'blur(1.2px)'; } catch (e) { /* older browsers draw it sharp */ }
+    for (let i = 0; i < 13; i++) {
+      const a0 = (i / 13) * TAU + rand(-0.2, 0.2), turns = rand(1.1, 1.9), wide = rand(2.5, 8), bright = rand(0.25, 0.8), white = rand(0.15, 0.85), N = 46;
+      for (let j = 0; j < N; j++) {
+        const t0 = j / N, t1 = (j + 1) / N;
+        const q = (t) => { const rr = R * Math.pow(1 - t, 1.25), an = a0 + t * turns * TAU; return [Math.cos(an) * rr, Math.sin(an) * rr]; };
+        const A = q(t0), B = q(t1);
+        sx.strokeStyle = tint(white, bright * Math.sin(Math.PI * Math.min(1, t0 * 1.15 + 0.04)));
+        sx.lineWidth = wide * (1 - t0 * 0.85);
+        sx.beginPath(); sx.moveTo(A[0], A[1]); sx.lineTo(B[0], B[1]); sx.stroke();
       }
-      ctx.setLineDash([]);
     }
-    // the rim: back half behind the bird, front half over it
-    ctx.strokeStyle = `rgba(${col},${0.3 * pulse})`; ctx.lineWidth = 20;
-    ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, a0, a1); ctx.stroke();
-    ctx.strokeStyle = `rgba(${col},0.95)`; ctx.lineWidth = 6;
-    ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, a0, a1); ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(0, 0, rx, ry, 0, a0, a1); ctx.stroke();
-    // sparks running round the rim
-    ctx.fillStyle = '#ffffff';
-    for (let i = 0; i < 12; i++) {
-      const an = gtime * 0.9 + (i * TAU) / 12, c = Math.cos(an);
-      if (c > 0 !== front) continue;
-      ctx.globalAlpha = 0.5 + 0.5 * Math.sin(gtime * 5 + i * 1.9);
-      ctx.beginPath(); ctx.arc(c * (rx + 9), Math.sin(an) * (ry + 9), 2.4, 0, TAU); ctx.fill();
+    sx.filter = 'none';
+    for (let i = 0; i < 170; i++) {
+      const rr = R * Math.sqrt(Math.random()), an = rand(0, TAU);
+      sx.fillStyle = tint(0.9, rand(0.2, 0.9));
+      sx.beginPath(); sx.arc(Math.cos(an) * rr, Math.sin(an) * rr, rand(0.4, 1.3), 0, TAU); sx.fill();
+    }
+    // the rim: ragged filaments of energy around one hard bright edge
+    const [rim, rx] = mk();
+    rx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 9; i++) {
+      const f1 = rint(2, 6), f2 = rint(7, 13), p1 = rand(0, TAU), p2 = rand(0, TAU), a1 = rand(1.5, 6), a2 = rand(0.5, 2.5), off = rand(-4, 7);
+      rx.strokeStyle = tint(rand(0.1, 0.7), rand(0.35, 0.8)); rx.lineWidth = rand(1, 3.6);
+      rx.shadowColor = shade(1, 1); rx.shadowBlur = rand(8, 24);
+      rx.beginPath();
+      for (let j = 0; j <= 180; j++) {
+        const an = (j / 180) * TAU, rr = R + off + Math.sin(an * f1 + p1) * a1 + Math.sin(an * f2 + p2) * a2;
+        if (j) rx.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); else rx.moveTo(rr, 0);
+      }
+      rx.closePath(); rx.stroke();
+    }
+    rx.strokeStyle = tint(0.92, 1); rx.lineWidth = 3; rx.shadowColor = tint(0.3, 1); rx.shadowBlur = 12;
+    rx.beginPath(); rx.arc(0, 0, R, 0, TAU); rx.stroke();
+    return (portalTex[name] = { base, swirl, rim, S, R, spark: tint(0.85, 1) });
+  }
+  function drawPortal(front) {
+    const p = biome.portal;
+    if (!p || (state !== 'play' && state !== 'dying')) return;
+    if (p.x < camX - 200 || p.x > camX + W + 200) return;
+    // once flown through, the gate folds shut behind the bird
+    const k = p.used ? 1 - Math.min(1, p.t * 2.4) : 1;
+    if (k <= 0) return;
+    const A = portalArt(p.to), R = A.R, S = A.S, H = S / 2;
+    const breath = 1 + 0.025 * Math.sin(gtime * 2.6 + p.ph), kk = k * k * (3 - 2 * k) * breath;
+    ctx.save();
+    ctx.translate(p.x, portalY(p));
+    ctx.scale((PORTAL_RX / R) * kk, (PORTAL_RY / R) * kk);
+    const spin = (img, a, sc, alpha) => {
+      ctx.save(); ctx.rotate(a); ctx.scale(sc, sc); ctx.globalAlpha = alpha;
+      ctx.drawImage(img, -H, -H); ctx.restore();
+    };
+    if (front) {
+      // the near half of the rim passes in front of the bird
+      ctx.beginPath(); ctx.rect(0, -H, H, S); ctx.clip();
+      ctx.globalCompositeOperation = 'lighter';
+      spin(A.rim, gtime * 0.3, 1, 1);
+      spin(A.rim, -gtime * 0.45, 1.015, 0.6);
+      ctx.restore();
+      return;
+    }
+    spin(A.base, 0, 1, 1);
+    ctx.globalCompositeOperation = 'lighter';
+    spin(A.swirl, gtime * 1.1, 1, 0.95);
+    spin(A.swirl, -gtime * 0.55 + 1.7, 0.74, 0.7);
+    spin(A.swirl, gtime * 2.1 + 0.6, 0.42, 0.8);
+    spin(A.rim, gtime * 0.3, 1, 1);
+    spin(A.rim, -gtime * 0.45, 1.015, 0.6);
+    // motes of light drawn in from the air around
+    ctx.fillStyle = A.spark;
+    for (let i = 0; i < 16; i++) {
+      const ph = (gtime * 0.32 + i / 16 + p.ph) % 1, rr = R * (1.7 - 1.45 * ph), an = i * 2.4 + ph * 4.2 + gtime * 0.25;
+      ctx.globalAlpha = 0.9 * Math.sin(ph * Math.PI);
+      ctx.beginPath(); ctx.ellipse(Math.cos(an) * rr, Math.sin(an) * rr, 5.5, 2.4, 0, 0, TAU); ctx.fill();
+    }
+    // brief arcs crackling along the rim
+    if (!RM) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 2.6; ctx.lineJoin = 'round';
+      for (let i = 0; i < 2; i++) {
+        const seed = Math.floor(gtime * 9) + i * 57;
+        if (hash1(seed, 311) < 0.45) continue;
+        let an = hash1(seed, 97) * TAU;
+        ctx.globalAlpha = 0.5 + 0.5 * hash1(seed, 13);
+        ctx.beginPath();
+        for (let j = 0; j < 9; j++) {
+          const rr = R + (hash1(seed * 31 + j, 5) - 0.5) * 26;
+          if (j) ctx.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); else ctx.moveTo(Math.cos(an) * rr, Math.sin(an) * rr);
+          an += 0.09;
+        }
+        ctx.stroke();
+      }
     }
     ctx.restore();
   }
