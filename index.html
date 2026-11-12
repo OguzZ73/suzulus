@@ -251,7 +251,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     <button class="icon-btn" id="btnPause" type="button" aria-label="Duraklat (P)" hidden>
       <svg viewBox="0 0 24 24"><path d="M9 6v12M15 6v12"/></svg>
     </button>
-    <button class="icon-btn" id="btnMute" type="button" aria-label="Sesi aç / kapat (M)">
+    <button class="icon-btn" id="btnMute" type="button" hidden aria-label="Sesi aç / kapat (M)">
       <svg viewBox="0 0 24 24"><path d="M4 9.5v5h4l5 4v-13l-5 4z"/><path class="on" d="M16.5 9c1.4 1.6 1.4 4.4 0 6M19 6.5c2.8 3 2.8 8 0 11"/><path class="off" d="M17 9.5l5 5M22 9.5l-5 5"/></svg>
     </button>
   </div>
@@ -1870,7 +1870,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     state = 'play';
     timeScale = 1;
     hideScreens();
-    el.hud.hidden = false; el.btnPause.hidden = false; el.hudBestWrap.hidden = false;
+    el.hud.hidden = false; el.btnPause.hidden = false; el.btnMute.hidden = false; el.hudBestWrap.hidden = false;
     el.hudBest.textContent = fmt(best);
     sparks(bird.x, bird.y, 18, 'white', 200, 2.5);
     shock(bird.x, bird.y, 'rgba(255,255,255,', 70);
@@ -1906,7 +1906,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     if (bird.y > groundY(bird.x) - 200) bird.vy = -260;
     for (const n of SKILL_NAMES) { if (sk[n].t > 0) endSkill(n); sk[n].t = 0; sk[n].cd = 0; }
     hideScreens();
-    el.hud.hidden = true; el.btnPause.hidden = true; el.hudBestWrap.hidden = true;
+    el.hud.hidden = true; el.btnPause.hidden = true; el.btnMute.hidden = true; el.hudBestWrap.hidden = true;
     el.menuBest.textContent = fmt(best);
     persist(); showProg();
     el.menu.hidden = false;
