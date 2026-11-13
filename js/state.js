@@ -71,11 +71,11 @@ const inDown = () => keys.down || touch.down;
 const CAT = {
   sail: [
     { id: 'klasik', name: 'Klasik Delta', price: 0, ds: 'Dengeli üçgen delta yelken ve klasik alüminyum iskelet.', near: ['#fbf5e8', '#ddcdb0'], far: ['#a99a86', '#c4b49c'], sn: ['#34507e', '#d9574a', '#e9b34e'], sf: ['#2d3e5c', '#a84a3c', '#b8924c'] },
-    { id: 'gunbatimi', name: 'Gün batımı · Kırlangıç', price: 150, ds: 'Kavisli martı kanadı, derin çatal kuyruk ve güneş ışını desenleri.', near: ['#ffe2b8', '#f2a06a'], far: ['#b77a5e', '#cf9572'], sn: ['#7a2e3a', '#e2563e', '#ffd36b'], sf: ['#5c2430', '#a8402f', '#c9a04c'] },
-    { id: 'buzul', name: 'Buzul · Kristal', price: 250, ds: 'Keskin köşeli buz kristali kanat uçları ve prizmatik kesitler.', near: ['#eef8ff', '#bcdcf1'], far: ['#8aa6bd', '#a6c0d4'], sn: ['#20406e', '#3f8fd6', '#bfe9ff'], sf: ['#1a3052', '#2f6aa0', '#8fb8d4'] },
-    { id: 'orman', name: 'Orman · Yaprak Telek', price: 350, ds: 'Katmanlı kuş telekleri, yaprak damarları ve ahşap omurga.', near: ['#e9f2dc', '#acc78f'], far: ['#7f9470', '#97ab86'], sn: ['#2f4a2a', '#6f9b46', '#e8c55a'], sf: ['#22381f', '#557a35', '#b89a46'] },
-    { id: 'gece', name: 'Gece mavisi · Hilal', price: 600, ds: 'Yarımay kavisli tırpan kanat ve parıldayan takımyıldız işlemeleri.', near: ['#4a4f86', '#262a58'], far: ['#2a2d55', '#3a3e6c'], sn: ['#c4b2ff', '#ffd27a', '#8de8ff'], sf: ['#9a8ad0', '#c9a45e', '#6ab6cc'] },
-    { id: 'altin', name: 'Altın · Zümrüdüanka', price: 1200, ds: 'Çift katmanlı kraliyet telekleri, altın gaga ve uzun anka kuyruğu.', near: ['#fff3c8', '#e6b452'], far: ['#b48a3e', '#c9a050'], sn: ['#8a5a1a', '#ffffff', '#b8862c'], sf: ['#6a4412', '#e8e0cc', '#8e6a24'] },
+    { id: 'gunbatimi', name: 'Gün batımı · Kırlangıç', price: 250, ds: 'Kavisli martı kanadı, derin çatal kuyruk ve güneş ışını desenleri.', near: ['#ffe2b8', '#f2a06a'], far: ['#b77a5e', '#cf9572'], sn: ['#7a2e3a', '#e2563e', '#ffd36b'], sf: ['#5c2430', '#a8402f', '#c9a04c'] },
+    { id: 'buzul', name: 'Buzul · Kristal', price: 450, ds: 'Keskin köşeli buz kristali kanat uçları ve prizmatik kesitler.', near: ['#eef8ff', '#bcdcf1'], far: ['#8aa6bd', '#a6c0d4'], sn: ['#20406e', '#3f8fd6', '#bfe9ff'], sf: ['#1a3052', '#2f6aa0', '#8fb8d4'] },
+    { id: 'orman', name: 'Orman · Yaprak Telek', price: 700, ds: 'Katmanlı kuş telekleri, yaprak damarları ve ahşap omurga.', near: ['#e9f2dc', '#acc78f'], far: ['#7f9470', '#97ab86'], sn: ['#2f4a2a', '#6f9b46', '#e8c55a'], sf: ['#22381f', '#557a35', '#b89a46'] },
+    { id: 'gece', name: 'Gece mavisi · Hilal', price: 1100, ds: 'Yarımay kavisli tırpan kanat ve parıldayan takımyıldız işlemeleri.', near: ['#4a4f86', '#262a58'], far: ['#2a2d55', '#3a3e6c'], sn: ['#c4b2ff', '#ffd27a', '#8de8ff'], sf: ['#9a8ad0', '#c9a45e', '#6ab6cc'] },
+    { id: 'altin', name: 'Altın · Zümrüdüanka', price: 1800, ds: 'Çift katmanlı kraliyet telekleri, altın gaga ve uzun anka kuyruğu.', near: ['#fff3c8', '#e6b452'], far: ['#b48a3e', '#c9a050'], sn: ['#8a5a1a', '#ffffff', '#b8862c'], sf: ['#6a4412', '#e8e0cc', '#8e6a24'] },
   ],
   scarf: [
     { id: 'kirmizi', name: 'Kırmızı', price: 0, c: ['#ea5a4c', '#a92f2b'] },
@@ -87,10 +87,10 @@ const CAT = {
   ],
   pilot: [
     { id: 'ruzgar', name: 'Rüzgâr', price: 0, ds: 'Dağınık kestane saçlı, kürklü deri pilot montlu genç kaşif. Her şeyi dengeli yapar.', stats: 'Erkek · Deri Mont · Hız: Normal · Manevra: Dengeli', helmet: '#d8d2c4', suit: ['#a8744a', '#7a4e2c', '#4e2f18'], arm: ['#5a381e', '#80522e'], pants: ['#2c3c54', '#3b4e6d'], boots: ['#563823', '#6b4529'], glove: '#523218', speed: 1, climb: 1, dive: 1, turn: 1, sink: 30, magnet: 1 },
-    { id: 'atmaca', name: 'Atmaca', price: 400, ds: 'Uzun kızıl saçlı, altın kuşaklı bordo avcı tunikli kadın pilot. Daha hızlı uçar.', stats: 'Kız · Avcı Tuniği · Hız: +%8 · Manevra: Standart', helmet: '#c9483c', suit: ['#c43c48', '#8a2230', '#52101a'], arm: ['#6e1c26', '#9e2836'], pants: ['#2c2033', '#3b2c44'], boots: ['#7a2226', '#982c32'], glove: '#5e1620', speed: 1.08, climb: 0.9, dive: 1, turn: 1, sink: 34, magnet: 1 },
-    { id: 'bulut', name: 'Bulut', price: 400, ds: 'Uzun sarı örgülü, beyaz kürklü kuzey parkalı kadın gezgin. Çok uzun süzülür.', stats: 'Kız · Kürklü Parka · Hız: −%5 · Süzülüş: Çok uzun', helmet: '#e8eef4', suit: ['#88c2e8', '#5694c0', '#366890'], arm: ['#467ea8', '#68a2cc'], pants: ['#627284', '#7a8b9e'], boots: ['#845c3e', '#9e704e'], glove: '#f0f5fa', speed: 0.95, climb: 1.05, dive: 0.95, turn: 1, sink: 8, magnet: 1 },
-    { id: 'dogan', name: 'Doğan', price: 550, ds: 'Uzun siyah at kuyruklu, zırhlı karbon hız tulumlu ve pelerinli erkek pilot.', stats: 'Erkek · Zırhlı Tulum · Hız: +%18 · Manevra: Çok keskin', helmet: '#23324d', visor: '#66f0ff', crest: '#ff6e4a', suit: ['#3b455c', '#202736', '#10141d'], arm: ['#191f2b', '#2b3447'], pants: ['#161b26', '#212838'], boots: ['#1a212e', '#263042'], glove: '#161c28', speed: 1.18, climb: 1.25, dive: 1.25, turn: 1.75, sink: 26, magnet: 1.15 },
-    { id: 'yildiz', name: 'Yıldız', price: 700, ds: 'Uzun gece-moru saçlı, altın işlemeli kraliyet elbiseli ve pelerinli kadın pilot.', stats: 'Kız · Kraliyet Elbisesi · Hız: Normal · Çekim: ×2', helmet: '#e6b84a', suit: ['#885ee0', '#5430a0', '#2e1668'], arm: ['#442488', '#643cb8'], pants: ['#231740', '#322258'], boots: ['#b88828', '#dba83c'], glove: '#fff2cc', speed: 1, climb: 1, dive: 1, turn: 1, sink: 30, magnet: 2 },
+    { id: 'atmaca', name: 'Atmaca', price: 650, ds: 'Uzun kızıl saçlı, altın kuşaklı bordo avcı tunikli kadın pilot. Daha hızlı uçar.', stats: 'Kız · Avcı Tuniği · Hız: +%8 · Manevra: Standart', helmet: '#c9483c', suit: ['#c43c48', '#8a2230', '#52101a'], arm: ['#6e1c26', '#9e2836'], pants: ['#2c2033', '#3b2c44'], boots: ['#7a2226', '#982c32'], glove: '#5e1620', speed: 1.08, climb: 0.9, dive: 1, turn: 1, sink: 34, magnet: 1 },
+    { id: 'bulut', name: 'Bulut', price: 650, ds: 'Uzun sarı örgülü, beyaz kürklü kuzey parkalı kadın gezgin. Çok uzun süzülür.', stats: 'Kız · Kürklü Parka · Hız: −%5 · Süzülüş: Çok uzun', helmet: '#e8eef4', suit: ['#88c2e8', '#5694c0', '#366890'], arm: ['#467ea8', '#68a2cc'], pants: ['#627284', '#7a8b9e'], boots: ['#845c3e', '#9e704e'], glove: '#f0f5fa', speed: 0.95, climb: 1.05, dive: 0.95, turn: 1, sink: 8, magnet: 1 },
+    { id: 'dogan', name: 'Doğan', price: 1000, ds: 'Uzun siyah at kuyruklu, zırhlı karbon hız tulumlu ve pelerinli erkek pilot.', stats: 'Erkek · Zırhlı Tulum · Hız: +%18 · Manevra: Çok keskin', helmet: '#23324d', visor: '#66f0ff', crest: '#ff6e4a', suit: ['#3b455c', '#202736', '#10141d'], arm: ['#191f2b', '#2b3447'], pants: ['#161b26', '#212838'], boots: ['#1a212e', '#263042'], glove: '#161c28', speed: 1.18, climb: 1.25, dive: 1.25, turn: 1.75, sink: 26, magnet: 1.15 },
+    { id: 'yildiz', name: 'Yıldız', price: 1500, ds: 'Uzun gece-moru saçlı, altın işlemeli kraliyet elbiseli ve pelerinli kadın pilot.', stats: 'Kız · Kraliyet Elbisesi · Hız: Normal · Çekim: ×2', helmet: '#e6b84a', suit: ['#885ee0', '#5430a0', '#2e1668'], arm: ['#442488', '#643cb8'], pants: ['#231740', '#322258'], boots: ['#b88828', '#dba83c'], glove: '#fff2cc', speed: 1, climb: 1, dive: 1, turn: 1, sink: 30, magnet: 2 },
   ],
 };
 const UPGRADES = [
@@ -99,11 +99,34 @@ const UPGRADES = [
   { id: 'slow', name: 'Zamanı yavaşlat', key: 'F' },
 ];
 const UP_COST = [300, 750, 1500, 2700], UP_MAX = 4;
+/* skill tree: at levels 2 and 4 each skill branches in two; a bought branch can be swapped for its twin at no cost, one per tier is active */
+const PERK_LVL = [2, 4], PERK_COST = [1200, 3000];
+const PERKS = {
+  dash: [
+    [{ id: 'dash1a', name: 'Kombo nefesi', ds: 'Atılım sürerken kombo süresi azalmaz.' },
+     { id: 'dash1b', name: 'Geniş mıknatıs', ds: 'Atılımda tüyleri çok daha uzaktan çekersin.' }],
+    [{ id: 'dash2a', name: 'Delici atılım', ds: 'Atılımda şahinleri, balonları ve uçurtmaları parçalarsın.' },
+     { id: 'dash2b', name: 'Kısa soluk', ds: 'Atılımın bekleme süresi %35 kısalır.' }],
+  ],
+  shield: [
+    [{ id: 'shield1a', name: 'Çift katman', ds: 'Kalkan kırılmadan önce iki darbeye dayanır.' },
+     { id: 'shield1b', name: 'Hızlı onarım', ds: 'Kırılan kalkanın bekleme süresi yarıya iner.' }],
+    [{ id: 'shield2a', name: 'Şok dalgası', ds: 'Kalkan kırılınca yakındaki şahin, balon ve uçurtmaları siler.' },
+     { id: 'shield2b', name: 'Son şans', ds: 'Her uçuşta bir kez, ölümcül bir çarpmadan kurtulursun.' }],
+  ],
+  slow: [
+    [{ id: 'slow1a', name: 'Altın zaman', ds: 'Zaman yavaşken her tüy iki sayılır.' },
+     { id: 'slow1b', name: 'Derin odak', ds: 'Zaman çok daha fazla yavaşlar.' }],
+    [{ id: 'slow2a', name: 'Uzayan an', ds: 'Zaman yavaşken her tüy süreyi uzatır (en çok +3 sn).' },
+     { id: 'slow2b', name: 'Hızlı dönüş', ds: 'Zamanın bekleme süresi %35 kısalır.' }],
+  ],
+};
+const PERK_IDS = Object.values(PERKS).flat(2).map((p) => p.id);
 // everything in the workshop has to be saved up for
 for (const k of Object.keys(CAT)) for (const it of CAT[k]) it.price *= 3;
 const SK_BASE = {};
 for (const n of SKILL_NAMES) SK_BASE[n] = { dur: SK[n].dur, cd: SK[n].cd };
-const save = { purse: 0, owned: { sail: ['klasik'], scarf: ['kirmizi'], pilot: ['ruzgar'] }, equip: { sail: 'klasik', scarf: 'kirmizi', pilot: 'ruzgar' }, up: { dash: 0, shield: 0, slow: 0 }, xp: 0, quests: [] };
+const save = { purse: 0, owned: { sail: ['klasik'], scarf: ['kirmizi'], pilot: ['ruzgar'] }, equip: { sail: 'klasik', scarf: 'kirmizi', pilot: 'ruzgar' }, up: { dash: 0, shield: 0, slow: 0 }, perkOwn: [], perkOn: { dash: [null, null], shield: [null, null], slow: [null, null] }, xp: 0, quests: [], adDay: '', adCount: 0, ghostOn: true, iapTx: [] };
 try {
   const raw = JSON.parse(localStorage.getItem('suzulus-save') || 'null');
   if (raw && typeof raw === 'object') {
@@ -113,11 +136,40 @@ try {
       if (raw.equip && save.owned[k].includes(raw.equip[k])) save.equip[k] = raw.equip[k];
     }
     if (raw.up) for (const n of SKILL_NAMES) save.up[n] = clamp(raw.up[n] | 0, 0, UP_MAX);
+    if (Array.isArray(raw.perkOwn)) save.perkOwn = [...new Set(raw.perkOwn.filter((id) => PERK_IDS.includes(id)))];
+    if (raw.perkOn) for (const n of SKILL_NAMES) for (let t = 0; t < 2; t++) {
+      const id = raw.perkOn[n] && raw.perkOn[n][t];
+      if (save.perkOwn.includes(id) && PERKS[n][t].some((p) => p.id === id)) save.perkOn[n][t] = id;
+    }
     if (Number.isFinite(raw.xp)) save.xp = Math.max(0, raw.xp | 0);
     if (Array.isArray(raw.quests)) save.quests = raw.quests.filter((q) => q && typeof q.k === 'string' && q.goal > 0 && q.xp > 0 && Number.isFinite(q.p)).slice(0, 3).map((q) => ({ k: q.k, goal: q.goal | 0, xp: q.xp | 0, p: Math.max(0, q.p), wait: !!q.wait }));
+    if (typeof raw.adDay === 'string') save.adDay = raw.adDay;
+    if (Number.isFinite(raw.adCount)) save.adCount = Math.max(0, raw.adCount | 0);
+    if (Array.isArray(raw.iapTx)) save.iapTx = raw.iapTx.filter((t) => typeof t === 'string').slice(-100);
+    if (typeof raw.ghostOn === 'boolean') save.ghostOn = raw.ghostOn;
   }
 } catch (e) { /* fresh save */ }
 function persist() { try { localStorage.setItem('suzulus-save', JSON.stringify(save)); } catch (e) { /* ignore */ } }
+const AD_DAILY_MAX = 2, AD_SHOP_REWARD = 50;
+const FEATHER_PACKS = [
+  { id: 'com.suzulus.oyun.feathers300', amount: 300, title: 'Başlangıç Kesesi', badge: 'Başlangıç', price: '₺19,99', ds: 'İlk yetenek yükseltmeni veya atkını hemen aç.' },
+  { id: 'com.suzulus.oyun.feathers750', amount: 750, title: 'Rüzgâr Sandığı', badge: '%20 Avantajlı', price: '₺39,99', ds: 'İlk kanadını ve temel yetenek yükseltmelerini aç.' },
+  { id: 'com.suzulus.oyun.feathers1800', amount: 1800, title: 'Altın Hazine', badge: 'En Popüler · %33 Avantajlı', price: '₺79,99', ds: 'Yeni bir pilotu veya ileri seviye kanatları anında aç.', featured: true },
+  { id: 'com.suzulus.oyun.feathers5000', amount: 5000, title: 'Gökyüzü Hazinesi', badge: 'En Karlı · %50 Avantajlı', price: '₺169,99', ds: 'Zümrüdüanka kanadı ve Yıldız pilotu dahil en üst ekipmanları aç.', featured: true },
+];
+let reviveUsed = false, doubleUsed = false, paidEarned = 0, lastEarned = 0;
+function todayKey() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+function syncAdDay() {
+  const t = todayKey();
+  if (save.adDay !== t) { save.adDay = t; save.adCount = 0; }
+}
+function shopAdsLeft() {
+  syncAdDay();
+  return Math.max(0, AD_DAILY_MAX - save.adCount);
+}
 /* account level: missions pay XP, XP raises the level, the level raises the speed a flight starts at */
 const LVL_MAX = 40;
 const xpNeed = (l) => 80 + 40 * (l - 1);
@@ -163,6 +215,7 @@ function finishQuest(i) {
 }
 // count n more toward every running mission of this kind
 function quest(kind, n = 1) {
+  if (watching) return;
   if (state !== 'play') return;
   for (let i = 0; i < save.quests.length; i++) {
     const q = save.quests[i];
@@ -173,6 +226,7 @@ function quest(kind, n = 1) {
 }
 // single-flight missions keep the best value reached in this flight
 function questMax(kind, v) {
+  if (watching) return;
   for (let i = 0; i < save.quests.length; i++) {
     const q = save.quests[i];
     if (q.k !== kind || q.wait || v <= q.p) continue;
@@ -202,7 +256,18 @@ function applyUpgrades() {
     SK[n].dur = SK_BASE[n].dur * (1 + 0.15 * l);
     SK[n].cd = SK_BASE[n].cd * (1 - 0.1 * l);
   }
+  if (perk('dash2b')) SK.dash.cd *= 0.65;
+  if (perk('slow2b')) SK.slow.cd *= 0.65;
 }
+// is this branch of the tree switched on (and its skill level high enough to carry it)?
+function perk(id) {
+  const n = id.replace(/\d.*$/, ''), t = +id.match(/\d/)[0] - 1;
+  return save.perkOn[n][t] === id && save.up[n] >= PERK_LVL[t];
+}
+// per flight: hits the shield can still take, the one-off last chance, how far the slow has been stretched
+let shieldHits = 1, lastChanceUsed = false, slowExt = 0;
+// watch mode: the glider flies itself through an empty sky, nothing to hit, nothing to score
+let watching = false;
 applyUpgrades();
 // the look of the flyer: gradients, wing shape id, pilot id and outfit colours used by paintBird
 const LOOK = { sailId: 'klasik', pilotId: 'ruzgar', sn: CAT.sail[0].sn, sf: CAT.sail[0].sf, arm: CAT.pilot[0].arm, pants: CAT.pilot[0].pants, boots: CAT.pilot[0].boots, glove: CAT.pilot[0].glove, helmet: CAT.pilot[0].helmet, visor: null, crest: null };
@@ -236,6 +301,8 @@ const el = {
   hudLvl: $('hudLvl'), phase: $('phase'), menu: $('menu'), pause: $('pause'), over: $('over'), menuBest: $('menuBest'),
   hudBest: $('hudBest'), hudBestWrap: $('hudBestWrap'), btnPause: $('btnPause'), btnMute: $('btnMute'),
   earned: $('earned'), finalScore: $('finalScore'), record: $('record'), stDist: $('stDist'), stFeathers: $('stFeathers'), stRings: $('stRings'), stCombo: $('stCombo'), tip: $('tip'),
+  btnShopAd: $('btnShopAd'), overAds: $('overAds'), btnRevive: $('btnRevive'), btnDouble: $('btnDouble'),
+  adDialog: $('adDialog'), adTitle: $('adTitle'), adTimer: $('adTimer'), btnAdClose: $('btnAdClose'), adCanvas: $('adCanvas'), adFill: $('adFill'), adDesc: $('adDesc'), adCaption: $('adCaption'),
 };
 const fmt = (n) => Math.floor(n).toLocaleString('tr-TR');
 const skillEls = {};

@@ -1,0 +1,104 @@
+{
+  "identifier" : "A4F1C3D0-7E5B-4B9E-8C2A-1F9D4A6E8B20",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "19.99",
+      "familyShareable" : false,
+      "internalID" : "6740000300",
+      "localizations" : [
+        {
+          "description" : "Oyun içi mağazada kullanabileceğin 300 Altın Tüy.",
+          "displayName" : "300 Altın Tüy",
+          "locale" : "tr"
+        },
+        {
+          "description" : "300 Golden Feathers for upgrades, wings, and pilots.",
+          "displayName" : "300 Golden Feathers",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.suzulus.oyun.feathers300",
+      "referenceName" : "300 Altın Tüy",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "39.99",
+      "familyShareable" : false,
+      "internalID" : "6740000750",
+      "localizations" : [
+        {
+          "description" : "Oyun içi mağazada kullanabileceğin 750 Altın Tüy.",
+          "displayName" : "750 Altın Tüy",
+          "locale" : "tr"
+        },
+        {
+          "description" : "750 Golden Feathers for wings and skill upgrades.",
+          "displayName" : "750 Golden Feathers",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.suzulus.oyun.feathers750",
+      "referenceName" : "750 Altın Tüy",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "79.99",
+      "familyShareable" : false,
+      "internalID" : "6740001800",
+      "localizations" : [
+        {
+          "description" : "En popüler paket: oyun içi mağazada kullanabileceğin 1.800 Altın Tüy.",
+          "displayName" : "1.800 Altın Tüy",
+          "locale" : "tr"
+        },
+        {
+          "description" : "Best value: 1,800 Golden Feathers to unlock pilots and elite wings.",
+          "displayName" : "1,800 Golden Feathers",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.suzulus.oyun.feathers1800",
+      "referenceName" : "1800 Altın Tüy",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "169.99",
+      "familyShareable" : false,
+      "internalID" : "6740005000",
+      "localizations" : [
+        {
+          "description" : "En karlı paket: oyun içi mağazada kullanabileceğin 5.000 Altın Tüy.",
+          "displayName" : "5.000 Altın Tüy",
+          "locale" : "tr"
+        },
+        {
+          "description" : "Best deal: 5,000 Golden Feathers to unlock all pilots and legendary wings.",
+          "displayName" : "5,000 Golden Feathers",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.suzulus.oyun.feathers5000",
+      "referenceName" : "5000 Altın Tüy",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "tr",
+    "_storefront" : "TUR",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
+

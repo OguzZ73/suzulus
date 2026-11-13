@@ -68,8 +68,8 @@ function updateBiome(dt) {
     if (bad.includes(weather.type)) { weather.type = 'clear'; weather.amt = 0; weather.phase = 'hold'; weather.timer = rand(20, 40); wp.length = 0; }
     if (POLAR) { coverTarget = Math.min(coverTarget, 0.2); coverT = rand(30, 60); }
     if (through) {
-      const pts = 300 * mult(); addScore(pts);
-      popup(`Yeni diyar: ${BIOME_NAMES[want]}  +${pts}`, '#ffffff', true);
+      const pts = watching ? 0 : 300 * mult(); addScore(pts);
+      popup(watching ? `Yeni diyar: ${BIOME_NAMES[want]}` : `Yeni diyar: ${BIOME_NAMES[want]}  +${pts}`, '#ffffff', true);
       el.phase.textContent = BIOME_NAMES[want];
       el.phase.classList.add('show');
       phaseShowT = 4.5;
@@ -195,16 +195,17 @@ function stepBird(h) {
   const P = pilotStat();
   const turn = P.turn || 1;
   let tvy = P.sink;
-  const up = inUp(), down = inDown();
+  const up = !watching && inUp(), down = !watching && inDown();
   if (up && !down) tvy = -370 * P.climb; else if (down && !up) tvy = 420 * (P.dive || 1);
-  bird.vy = damp(bird.vy, tvy, up || down ? 5 * turn : 2.4 * Math.sqrt(turn), h);
+  if (watching) tvy = autoPilot();
+  bird.vy = damp(bird.vy, tvy, watching ? 1.6 : up || down ? 5 * turn : 2.4 * Math.sqrt(turn), h);
   if (gust > 0.01) bird.vy += Math.sin(gustT * 2.3) * Math.sin(gustT * 0.7 + 0.5) * 260 * gust * h;
   for (const it of items) {
     if (it.type !== 'thermal' || Math.abs(bird.x - it.x) > it.w / 2) continue;
     const k = clamp((bird.y - it.top) / 140, 0, 1) * (1 - Math.pow(Math.abs(bird.x - it.x) / (it.w / 2), 2) * 0.5);
     if (k <= 0) continue;
     bird.vy -= 1500 * k * h;
-    if (!it.used && state === 'play') {
+    if (!it.used && state === 'play' && !watching) {
       it.used = true;
       bumpCombo();
       const pts = 40 * mult();
@@ -215,11 +216,11 @@ function stepBird(h) {
     }
   }
   // cruising speed keeps creeping up the farther the flight goes
-  let ts = cruiseSpeed() * P.speed;
-  if (keys.right) ts += 160 * (0.7 + 0.3 * turn);
-  if (keys.left) ts -= 150 * (0.7 + 0.3 * turn);
+  let ts = watching ? 330 : cruiseSpeed() * P.speed;
+  if (keys.right && !watching) ts += 160 * (0.7 + 0.3 * turn);
+  if (keys.left && !watching) ts -= 150 * (0.7 + 0.3 * turn);
   // a glider trades height for speed: diving picks it up, climbing bleeds it off
-  if (bird.vy > 60) ts += (bird.vy - 60) * 0.42; else if (bird.vy < -80) ts += (bird.vy + 80) * 0.16;
+  if (bird.vy > 60) ts += (bird.vy - 60) * (watching ? 0.15 : 0.42); else if (bird.vy < -80) ts += (bird.vy + 80) * 0.16;
   ts = Math.max(ts, 180);
   if (sk.dash.t > 0) ts = ts * 1.8 + 60;
   if (ringBoost > 0) ts += 200;
@@ -229,13 +230,27 @@ function stepBird(h) {
   bird.x += dx;
   bird.y += bird.vy * h;
   if (bird.y < 34) { bird.y = 34; if (bird.vy < 0) bird.vy = 0; }
-  addScore((dx / 10) * (sk.dash.t > 0 ? 2 : 1));
+  if (watching) { const floor = groundY(bird.x) - 60; if (bird.y > floor) { bird.y = floor; if (bird.vy > 0) bird.vy = 0; } }
+  else addScore((dx / 10) * (sk.dash.t > 0 ? 2 : 1));
+}
+// watch mode's pilot: a lazy, rolling line well above the hills that drifts down to meet each portal
+function autoPilot() {
+  let top = Infinity;
+  for (let dx = 0; dx <= 520; dx += 40) top = Math.min(top, groundY(bird.x + dx));
+  let want = top - 190 - 70 * Math.sin(bird.x / 1700) - 30 * Math.sin(bird.x / 610 + 1.3);
+  const p = biome.portal;
+  if (p && !p.used && p.x > bird.x - 40 && p.x - bird.x < 1600) {
+    const k = sstep(clamp(1 - (p.x - bird.x - 250) / 1350, 0, 1));
+    want = lerp(want, portalY(p), k);
+  }
+  want = clamp(want, 90, top - 110);
+  return clamp((want - bird.y) * 1.3, -240, 230);
 }
 function collide() {
   const bx = bird.x, by = bird.y;
   const gy = groundY(bx);
   if (by + 10 > gy) {
-    if (shieldOn()) { breakShield(null); bird.y = gy - 14; bird.vy = -420; }
+    if (shieldOn() || useLastChance()) { breakShield(null, !shieldOn()); bird.y = gy - 14; bird.vy = -420; }
     else if (bird.inv > 0 && state === 'play' && bird.inv > 1) { bird.y = gy - 12; bird.vy = -200; }
     else { die(); return; }
   }
@@ -254,7 +269,8 @@ function collide() {
     if (d < BIRD_R) {
       o.touched = true;
       if (bird.inv > 0) continue;
-      if (shieldOn()) { breakShield(o); continue; }
+      if (sk.dash.t > 0 && perk('dash2a') && SMASHABLE.includes(o.type)) { smash(o); buzz(20); shake = Math.max(shake, RM ? 0 : 4); addScore(50 * mult()); popup('Parçalandı  +' + 50 * mult(), '#ffd27a'); continue; }
+      if (shieldOn() || useLastChance()) { breakShield(o, !shieldOn()); continue; }
       die();
       return;
     }
@@ -266,7 +282,7 @@ function updateBirdAnim(gdt) {
   const turn = pilotStat().turn || 1;
   // pushing the bar out lifts the nose, pulling it in drops it into a dive
   bird.pitch = damp(bird.pitch, bird.dead ? 0.45 : state === 'menu' ? -0.16 + Math.sin(time * 0.9) * 0.025 : up ? -0.14 * Math.min(1.22, turn) : down ? 0.13 * Math.min(1.22, turn) : 0, 5 * turn, gdt);
-  if (state !== 'menu') standK = damp(standK, 0, 4.5, gdt);
+  if (state !== 'menu') standK = damp(standK, 0, 3.6, gdt);
   bird.phase += gdt * (7 + bird.speed / 70);
   if (!bird.dead) bird.ang = damp(bird.ang, Math.atan2(bird.vy, Math.max(bird.speed, 120)) * 0.9, 9 * turn, gdt);
   // trail streams off the near wingtip
@@ -283,7 +299,7 @@ function updatePlay(gdt, dt) {
     if (s.t > 0) { s.t -= dt; if (s.t <= 0) { s.t = 0; endSkill(n); } }
     if (s.cd > 0) s.cd = Math.max(0, s.cd - dt);
   }
-  if (comboTimer > 0) { comboTimer -= dt; if (comboTimer <= 0) combo = 0; }
+  if (comboTimer > 0 && !(sk.dash.t > 0 && perk('dash1a'))) { comboTimer -= dt; if (comboTimer <= 0) combo = 0; }
   if (ringBoost > 0) ringBoost -= dt;
   if (ringSlow > 0) ringSlow -= dt;
   bird.inv = Math.max(0, bird.inv - gdt);
@@ -292,22 +308,22 @@ function updatePlay(gdt, dt) {
   const h = gdt / steps;
   for (let i = 0; i < steps; i++) {
     stepBird(h);
-    collide();
+    if (!watching) collide();
     if (state !== 'play') break;
   }
   dist = bird.x - startX;
-  if (state === 'play') {
+  if (state === 'play' && !watching) {
     updateSkim(gdt); updateGhost(gdt, dt);
     const m = Math.floor(dist / 10);
     if (m > questM) { quest('dist', m - questM); questM = m; questMax('oneDist', m); }
     questMax('oneScore', Math.floor(score));
   }
-  if (!bestAnnounced && bestAtStart > 0 && score > bestAtStart) {
+  if (!watching && !bestAnnounced && bestAtStart > 0 && score > bestAtStart) {
     bestAnnounced = true;
     popup('Yeni rekor', '#ffd27a', true);
     Sound.record();
   }
-  spawnAhead();
+  if (!watching && runT > 0.45) spawnAhead();
 }
 // on the menu the pilot stands right of the title; on narrow screens a little further over
 const MENU_FRAC = () => (W > 900 ? 0.64 : 0.7);
@@ -456,7 +472,7 @@ function updateObstacles(gdt) {
 }
 function updateItems(gdt) {
   const playing = state === 'play';
-  const mag = (sk.dash.t > 0 ? 150 : 72) * pilotStat().magnet;
+  const mag = (sk.dash.t > 0 ? (perk('dash1b') ? 270 : 150) : 72) * pilotStat().magnet;
   for (let i = items.length - 1; i >= 0; i--) {
     const it = items[i];
     if (it.taken || it.done) { it.t += gdt; if (it.t > 0.8) { items.splice(i, 1); } continue; }
@@ -730,7 +746,7 @@ function update(dt) {
     return;
   }
   const slowOn = sk.slow.t > 0;
-  let tsTarget = slowOn ? 0.42 : 1;
+  let tsTarget = slowOn ? (perk('slow1b') ? 0.3 : 0.42) : 1;
   if (state === 'dying' && deathTimer < 0.55) tsTarget = 0.32;
   timeScale = damp(timeScale, tsTarget, 7, dt);
   const gdt = dt * timeScale;
@@ -859,7 +875,7 @@ function update(dt) {
   dashAmt = damp(dashAmt, sk.dash.t > 0 ? 1 : ringBoost > 0 ? 0.75 : 0, 6, dt);
   shieldAmt = damp(shieldAmt, shieldOn() ? 1 : 0, 10, dt);
 
-  Sound.update(bird.speed, storm, state === 'play', false, state === 'play' ? clamp((cruiseSpeed() - 300) / 380, 0, 1) : 0);
+  Sound.update(bird.speed, storm, state === 'play', false, state === 'play' && !watching ? clamp((cruiseSpeed() - 300) / 380, 0, 1) : 0);
   updateHUD();
 }
 

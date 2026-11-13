@@ -7,6 +7,7 @@
 const Sound = (() => {
   let ac = null, master, lp, music, sfx, verb, mverb, sverb, noiseBuf, pinkBuf, brownBuf, rainBus, pianoWave;
   let muted = false, lastUpd = 0, barIdx = 0, nextBar = 0, piece = 1, drive = 0;
+  let schedTimer = 0, suspendedByApp = false, rebuilding = false, resumeCheck = 0;
   try { muted = localStorage.getItem('suzulus-muted') === '1'; } catch (e) { /* storage unavailable */ }
   // the two volume sliders in the settings: music, and everything else (effects, wind, rain)
   const vol = { music: 1, sfx: 1 };
@@ -191,16 +192,28 @@ const Sound = (() => {
       if (p && p.then) p.then(onDecoded, () => {});
     } catch (e) { /* format not supported: rain stays silent */ }
   }
-  function init() {
-    if (ac) { if (ac.state !== 'running' && !document.hidden) ac.resume(); return; }
+  function unlockTick() {
+    if (!ac) return;
+    // older iOS only unlocks a context that actually plays something inside the tap
+    try { const b = ac.createBufferSource(); b.buffer = ac.createBuffer(1, 1, 22050); b.connect(ac.destination); b.start(0); } catch (e) { /* ignore */ }
+  }
+  function buildContext() {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     // iOS: play as media, so the ring/silent switch does not mute the game (Safari 16.4+)
     try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { /* ignore */ }
     try { ac = new AC(); } catch (e) { ac = null; return; }
-    // older iOS only unlocks a context that actually plays something inside the tap
-    try { const b = ac.createBufferSource(); b.buffer = ac.createBuffer(1, 1, 22050); b.connect(ac.destination); b.start(0); } catch (e) { /* ignore */ }
-    if (ac.state !== 'running') ac.resume();
+    const ctxRef = ac;
+    ctxRef.onstatechange = () => {
+      if (rebuilding || ac !== ctxRef || document.hidden || suspendedByApp) return;
+      if (ctxRef.state !== 'running') {
+        try { const p = ctxRef.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ignore */ }
+      }
+    };
+    unlockTick();
+    if (ac.state !== 'running') {
+      try { const p = ac.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ignore */ }
+    }
     master = ac.createGain(); master.gain.value = muted ? 0 : 0.85;
     lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 18000; lp.Q.value = 0.6;
     const comp = ac.createDynamicsCompressor();
@@ -225,8 +238,59 @@ const Sound = (() => {
     rainBus = ac.createGain(); rainBus.gain.value = 0; rainBus.connect(master);
     const rv = ac.createGain(); rv.gain.value = 0.06; rainBus.connect(rv); rv.connect(sverb);
     loadRain();
+    lastUpd = 0;
     nextBar = ac.currentTime + 0.3;
-    setInterval(schedule, 100);
+    if (!schedTimer) schedTimer = setInterval(schedule, 100);
+  }
+  function rebuildContext() {
+    if (rebuilding || document.hidden || suspendedByApp) return;
+    rebuilding = true;
+    const old = ac;
+    ac = null;
+    if (old) {
+      try { old.onstatechange = null; } catch (e) { /* ignore */ }
+      try { const p = old.close(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ignore */ }
+    }
+    buildContext();
+    rebuilding = false;
+  }
+  function suspend() {
+    suspendedByApp = true;
+    clearTimeout(resumeCheck);
+    if (!ac) return;
+    try { if (master) master.gain.setTargetAtTime(0, ac.currentTime, 0.02); } catch (e) { /* ignore */ }
+    if (ac.state === 'running') {
+      try { const p = ac.suspend(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ignore */ }
+    }
+  }
+  function resume(fromGesture) {
+    if (document.hidden) return;
+    suspendedByApp = false;
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { /* ignore */ }
+    if (!ac) {
+      if (fromGesture) buildContext();
+      return;
+    }
+    if (fromGesture) unlockTick();
+    if (ac.state !== 'running') {
+      try { const p = ac.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* ignore */ }
+    }
+    try { if (master) master.gain.setTargetAtTime(muted ? 0 : 0.85, ac.currentTime, 0.04); } catch (e) { /* ignore */ }
+    clearTimeout(resumeCheck);
+    const ctxRef = ac, t0 = ac.currentTime;
+    resumeCheck = setTimeout(() => {
+      if (!ac || ac !== ctxRef || document.hidden || suspendedByApp) return;
+      if (ac.state !== 'running' || ac.currentTime <= t0 + 0.005) {
+        if (fromGesture) rebuildContext();
+        else {
+          try { if (ac.state !== 'running') { const p = ac.resume(); if (p && p.catch) p.catch(() => {}); } } catch (e) { /* ignore */ }
+        }
+      }
+    }, 220);
+  }
+  function init() {
+    if (!ac) buildContext();
+    else resume(true);
   }
 
   /* ---- instruments ---- */
@@ -546,12 +610,13 @@ const Sound = (() => {
       if (ac) master.gain.setTargetAtTime(muted ? 0 : 0.85, ac.currentTime, 0.08);
       return muted;
     },
-    suspend() { if (ac && ac.state === 'running') ac.suspend(); },
-    resume() { if (ac && ac.state !== 'running') ac.resume(); }, // 'interrupted' too: a call or Siri on iOS
+    suspend,
+    resume,
     // pace: 0 when calm, toward 1 as the flight speeds up; eased so the music follows smoothly
     update(speed, rain, flying, paused, pace) {
       if (!ac) return;
       const now = ac.currentTime;
+      if (now < lastUpd) lastUpd = now;
       if (now - lastUpd < 0.1) return;
       if (!paused) drive += ((pace || 0) - drive) * (1 - Math.exp(-(now - lastUpd) / 4));
       lastUpd = now;

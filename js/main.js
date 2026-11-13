@@ -23,6 +23,68 @@ function frame(now) {
   drawShopPreview();
 }
 
+let supportsDisplayTransition;
+function canTransitionDisplay() {
+  if (supportsDisplayTransition !== undefined) return supportsDisplayTransition;
+  if (!window.CSS?.supports?.('transition-behavior', 'allow-discrete') || !document.body) return false;
+  const probe = document.createElement('div');
+  probe.style.cssText = 'transition: display 1s allow-discrete !important; display: block;';
+  document.body.appendChild(probe);
+  getComputedStyle(probe).display;
+  probe.style.display = 'none';
+  supportsDisplayTransition = getComputedStyle(probe).display === 'block';
+  probe.remove();
+  return supportsDisplayTransition;
+}
+async function hideElement(node) {
+  if (!node || node.hidden) return;
+  if (canTransitionDisplay()) node.hidden = true;
+  else node.setAttribute('data-closing', '');
+  const animations = node.getAnimations();
+  if (animations.length > 0) {
+    await Promise.race([
+      Promise.allSettled(animations.map((a) => a.finished)),
+      new Promise((r) => setTimeout(r, 1200)),
+    ]);
+  }
+  if (node.hasAttribute('data-closing')) {
+    node.removeAttribute('data-closing');
+    node.hidden = true;
+  }
+}
+function showElement(node) {
+  if (!node) return;
+  node.removeAttribute('data-closing');
+  node.hidden = false;
+}
+if (!CSS.supports('animation-delay: calc(sibling-index() * 0.1s)')) {
+  for (const id of ['introFeathers']) {
+    const parent = $(id);
+    if (parent) [...parent.children].forEach((c, i) => c.style.setProperty('--sibling-index', i + 1));
+  }
+  const hero = document.querySelector('#menu .hero');
+  if (hero) [...hero.children].forEach((c, i) => c.style.setProperty('--sibling-index', i + 1));
+}
+
+function runOpeningIntro() {
+  const introEl = $('intro');
+  if (!introEl) { showElement(el.menu); return; }
+  let done = false;
+  const finishIntro = () => {
+    if (done) return;
+    done = true;
+    clearTimeout(timer);
+    placeCliff(0.25);
+    showElement(el.menu);
+    hideElement(introEl);
+  };
+  const timer = setTimeout(finishIntro, RM ? 450 : 2100);
+  introEl.addEventListener('pointerdown', finishIntro, { once: true });
+  window.addEventListener('keydown', (e) => {
+    if (!done) { e.stopImmediatePropagation(); e.preventDefault(); finishIntro(); }
+  }, { capture: true, once: true });
+}
+
 function boot() {
   resize();
   computePalette(dayT, 0);
@@ -37,12 +99,14 @@ function boot() {
   for (let i = 0; i < 4; i++) bgKites.push(makeBgKite(1, true, i));
   for (let i = 0; i < 9; i++) wisps.push({ x: rand(0, W + 400), y: rand(90, 540), len: rand(90, 210), amp: rand(4, 13), k: rand(3, 7), ph: rand(0, TAU), sp: rand(30, 90), par: rand(0.45, 0.8), a: rand(0.5, 1) });
   for (let i = 0; i < 18; i++) lines.push({ x: rand(0, W), y: rand(60, 640), len: rand(60, 180), sp: rand(1600, 2600) });
-  placeCliff(1.1);
+  placeCliff(1.85);
   bird.frac = MENU_FRAC();
   camX = cliff.x - 15 - W * bird.frac;
   computePalette(dayT, 0);
   retintClouds();
   showProg();
+  featherBurst(cliff.x - 110, standY(cliff.x - 15) - 40, 12);
+  runOpeningIntro();
   requestAnimationFrame((t) => { last = t; frame(t); });
 }
 boot();

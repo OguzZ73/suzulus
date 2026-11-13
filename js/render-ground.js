@@ -707,7 +707,7 @@ function drawCliff() {
   const seg = 5, L = 34;
   for (let q = 0; q < seg; q++) {
     const t0 = q / seg, t1 = (q + 1) / seg;
-    const at = (t) => [px - 2 - t * L, py - ph + 5 + t * t * 7 + Math.sin(gtime * 6 - t * 5) * 2.4 * t];
+    const at = (t) => [px + 2 + t * L, py - ph + 5 + t * t * 7 + Math.sin(gtime * 6 - t * 5) * 2.4 * t];
     const a = at(t0), b = at(t1), w0 = 5.5 - t0 * 3, w1 = 5.5 - t1 * 3;
     ctx.beginPath(); ctx.moveTo(a[0], a[1] - w0); ctx.lineTo(b[0], b[1] - w1); ctx.lineTo(b[0], b[1] + w1); ctx.lineTo(a[0], a[1] + w0); ctx.closePath();
     ctx.fillStyle = css(mix(q % 2 ? [246, 240, 228] : [232, 96, 70], pal.light, pal.la * 0.6)); ctx.fill();

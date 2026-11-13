@@ -9,6 +9,7 @@ struct SuzulusApp: App {
         // Play as media instead, still mixing with music from other apps.
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
         try? AVAudioSession.sharedInstance().setActive(true)
+        // Google Mobile Ads starts only after the consent check (GameView's coordinator runs it).
     }
 
     var body: some Scene {
@@ -18,6 +19,10 @@ struct SuzulusApp: App {
                 .statusBarHidden(true)
                 .persistentSystemOverlays(.hidden)
                 .background(Color(red: 0.047, green: 0.075, blue: 0.157))
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                    try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
+                    try? AVAudioSession.sharedInstance().setActive(true)
+                }
         }
     }
 }
