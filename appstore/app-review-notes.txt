@@ -1,15 +1,16 @@
 1. SCREEN RECORDING
-Recorded on a physical iPhone running the latest iOS. It starts at app launch and shows: the consent (UMP) dialog, a full flight, the game-over screen, the Shop, a rewarded video ad, a purchase of a Golden Feathers pack (Sandbox) and Restore Purchases.
+Recorded on a physical iPhone running the latest iOS. It starts at app launch and shows: the consent (UMP) dialog, a full flight, the game-over screen, the Shop, a rewarded video ad, and a purchase of a Golden Feathers pack (Sandbox).
 Video: <VIDEO LINK HERE>
 The app has no account registration, no login and no user-generated content.
 
 2. PURPOSE AND TARGET AUDIENCE
-Süzülüş ("Gliding") is a relaxing, single-player casual arcade game. The player steers a paper glider through changing skies and landscapes, avoids obstacles, rides air currents and collects feathers. It is aimed at casual players aged 9+ who want short, calm play sessions with atmospheric visuals and music. It works fully offline and needs no account.
+Süzülüş ("Gliding") is a relaxing, single-player casual arcade game. The player steers a hang glider pilot through changing skies and landscapes, avoids obstacles, rides air currents and collects feathers. It is aimed at casual players aged 9+ who want short, calm play sessions with atmospheric visuals and music. It works fully offline and needs no account.
 
 3. HOW TO USE / ACCESS FEATURES
 - No login or demo account is needed. Open the app and start a flight from the main menu.
 - Use the two flight buttons on the right side of the screen: hold the upper one to climb, the lower one to dive; with neither held the glider sinks gently. Avoid obstacles; collect feathers.
-- After a flight, collected feathers can be spent in the Workshop / Skill Tree and the Shop (wings, pilots, upgrades).
+- Every 1,200 m a portal appears; flying through it moves the player to a random new land (lakes, canyon, polar, volcano).
+- Collected feathers are spent in the Shop: wings, scarves, pilots, and skill upgrades with a skill tree (Upgrades tab).
 - Shop > Golden Feathers: 4 consumable In-App Purchases:
   com.suzulus.oyun.feathers300, com.suzulus.oyun.feathers750, com.suzulus.oyun.feathers1800, com.suzulus.oyun.feathers5000
   Golden Feathers are an in-game currency only; all content can also be earned by playing. A "Restore Purchases" button is in the Shop.

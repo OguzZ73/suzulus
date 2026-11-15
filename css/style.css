@@ -225,7 +225,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .legal-btns { display: flex; flex-wrap: wrap; gap: 8px; grid-column: 2 / -1; }
 .legal-dialog { width: min(560px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); }
 .legal-body {
-  max-height: min(56vh, 320px); overflow-y: auto; overscroll-behavior: contain;
+  max-height: min(56vh, 320px); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch;
   -webkit-overflow-scrolling: touch;
   padding: 14px 16px; font-size: 12.5px; line-height: 1.55; color: var(--ink-soft);
 }
@@ -650,6 +650,9 @@ html, body { overscroll-behavior: none; }
 @keyframes watch-fade { 0% { opacity: 0; } 12% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
 
 /* rewarded video ad buttons and modal dialog */
+/* dialogs live inside .ui, which lets taps through to the game: without this they would inherit
+   pointer-events: none, their buttons could not be pressed and the open modal would lock the whole game */
+dialog { pointer-events: auto; }
 dialog:modal { overscroll-behavior: contain; }
 dialog::backdrop {
   overflow: hidden;
