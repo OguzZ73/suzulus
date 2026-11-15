@@ -26,6 +26,8 @@ function setLang(l) {
   document.documentElement.lang = LANG;
   for (const n of document.querySelectorAll('.ui[lang]')) n.lang = LANG;
   if (!EN) return;
+  const mf = document.querySelector('link[rel="manifest"]');
+  if (mf) mf.href = 'manifest.en.webmanifest';
   for (const n of document.querySelectorAll('[data-en]')) {
     const en = n.dataset.en;
     if (!n.children.length) { n.textContent = en; continue; }

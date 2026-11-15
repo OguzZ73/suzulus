@@ -32,7 +32,7 @@ let retintT = 0, gust = 0, gustT = 0, wxDrift = 0;
 let skimT = 0, skimAcc = 0, skimPts = 0, skimOn = false, skimTotal = 0, skimFx = 0;
 // ghost race: the best flight so far is replayed beside you; rec is this flight being written down
 const GH_DT = 0.12;
-let ghost = null, ghostRun = null, rec = null, recNext = 0, runT = 0, ghostFeathers = 0, biomeSeq = ['lakes', 'canyon', 'polar', 'volcano'];
+let ghost = null, ghostRun = null, rec = null, recNext = 0, runT = 0, ghostFeathers = 0;
 try {
   const g = JSON.parse(localStorage.getItem('suzulus-ghost') || 'null');
   if (g && Array.isArray(g.d) && g.d.length >= 30 && g.d.every(Number.isFinite)) ghost = { d: g.d, score: +g.score || 0 };
@@ -213,10 +213,10 @@ try {
 function persist() { try { localStorage.setItem('suzulus-save', JSON.stringify(save)); } catch (e) { /* ignore */ } }
 const AD_DAILY_MAX = 2, AD_SHOP_REWARD = 50;
 const FEATHER_PACKS = [
-  { id: 'com.suzulus.oyun.feathers300', amount: 300, title: 'Başlangıç Kesesi', badge: 'Başlangıç', price: '₺19,99', ds: 'İlk yetenek yükseltmeni veya atkını hemen aç.' },
-  { id: 'com.suzulus.oyun.feathers750', amount: 750, title: 'Rüzgâr Sandığı', badge: '%20 Avantajlı', price: '₺39,99', ds: 'İlk kanadını ve temel yetenek yükseltmelerini aç.' },
-  { id: 'com.suzulus.oyun.feathers1800', amount: 1800, title: 'Altın Hazine', badge: 'En Popüler · %33 Avantajlı', price: '₺79,99', ds: 'Yeni bir pilotu veya ileri seviye kanatları anında aç.', featured: true },
-  { id: 'com.suzulus.oyun.feathers5000', amount: 5000, title: 'Gökyüzü Hazinesi', badge: 'En Karlı · %50 Avantajlı', price: '₺169,99', ds: 'Zümrüdüanka kanadı ve Yıldız pilotu dahil en üst ekipmanları aç.', featured: true },
+  { id: 'com.suzulus.oyun.feathers300', amount: 300, title: 'Başlangıç Kesesi', badge: 'Başlangıç', ds: 'İlk yetenek yükseltmeni veya atkını hemen aç.' },
+  { id: 'com.suzulus.oyun.feathers750', amount: 750, title: 'Rüzgâr Sandığı', badge: '%20 Avantajlı', ds: 'İlk kanadını ve temel yetenek yükseltmelerini aç.' },
+  { id: 'com.suzulus.oyun.feathers1800', amount: 1800, title: 'Altın Hazine', badge: 'En Popüler · %33 Avantajlı', ds: 'Yeni bir pilotu veya ileri seviye kanatları anında aç.', featured: true },
+  { id: 'com.suzulus.oyun.feathers5000', amount: 5000, title: 'Gökyüzü Hazinesi', badge: 'En Karlı · %50 Avantajlı', ds: 'Zümrüdüanka kanadı ve Yıldız pilotu dahil en üst ekipmanları aç.', featured: true },
 ];
 if (EN) {
   const en = [
@@ -398,7 +398,7 @@ const TIPS = EN ? [
   'Spend the feathers you collect in the Shop on new wings, pilots and upgrades.',
   'In the land of lakes and waterfalls, watch out for the domes and baskets of drifting hot-air balloons.',
   'Every 250 metres and every air current you catch adds extra feathers to your purse.',
-  'Every 1,200 metres a portal appears in the sky; Red Canyon, the Pole and Fire Valley come in a different order every flight.',
+  'Every 1,200 metres a portal appears in the sky; each one opens onto a random land, so if you skip one the next may lead somewhere else.',
   'Diving speeds the glider up and climbing slows it down; lift the nose before a narrow gap to catch your breath.',
   'Glide within a wing’s length of the ground to score “ground skim” points and keep your combo alive.',
   'Hit the light right in the centre of a wind ring for a “bullseye”: double points and extra combo.',
@@ -422,7 +422,7 @@ const TIPS = EN ? [
   'Topladığın tüyleri Mağaza’da yeni kanatlara, karakterlere ve yükseltmelere harcayabilirsin.',
   'Göller ve şelaleler diyarında süzülen sıcak hava balonlarının kubbe ve sepetlerine çarpmamaya dikkat et.',
   'Her 250 metre ve yakaladığın her hava akımı kesene ekstra tüy kazandırır.',
-  'Her 1.200 metrede gökyüzünde bir portal belirir; Kızıl Kanyon, Kutup ve Ateş Vadisi her uçuşta farklı sırayla gelir.',
+  'Her 1.200 metrede gökyüzünde bir portal belirir; her biri rastgele bir diyara açılır, birini kaçırırsan sonraki başka bir yere götürebilir.',
   'Dalışa geçtiğinde planör hızlanır, tırmanırken yavaşlar; dar bir geçitten önce burnu kaldırıp nefes al.',
   'Yere bir kanat boyu yaklaşıp süzülürsen “yer sıyırma” puanı işler ve kombon sönmez.',
   'Rüzgar halkasının tam ortasındaki ışıktan geçersen “tam isabet” iki kat puan ve ekstra kombo verir.',

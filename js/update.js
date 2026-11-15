@@ -20,28 +20,31 @@ function showLabel() {
 }
 // every 1.2 km a portal hangs in the sky; flying through it swaps the country in one beat, flying past keeps the land as it is
 const PORTAL_GAP = 12000, PORTAL_RY = 96, PORTAL_RX = 50;
-const biome = { target: 'lakes', idx: 0, n: 1, portal: null };
+const biome = { target: 'lakes', idx: 0, n: 1, portal: null, lastTo: null };
 // the 1900s city is out of the rotation for now; its drawing code is kept so it can come back redesigned
 const BIOMES = ['lakes', 'canyon', 'polar', 'volcano'];
 const BIOME_NAMES = EN
   ? { lakes: 'Land of Lakes', city: 'Old Town of the 1900s', canyon: 'Red Canyon', polar: 'The Pole', volcano: 'Fire Valley' }
   : { lakes: 'Göller diyarı', city: '1900’ler Eski Şehir', canyon: 'Kızıl Kanyon', polar: 'Kutup', volcano: 'Ateş Vadisi' };
-// every flight starts over the lakes; the countries after that come in a different order each time
-function shuffleBiomes() {
-  const rest = BIOMES.filter((b) => b !== 'lakes');
-  for (let i = rest.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [rest[i], rest[j]] = [rest[j], rest[i]]; }
-  biomeSeq = ['lakes', ...rest];
+// every flight starts over the lakes; each portal opens onto a random other country,
+// never the one you are in and never the one the portal before it offered, so a skipped gate is followed by a new choice
+function pickPortalDest() {
+  const other = BIOMES.filter((b) => b !== biome.target);
+  const fresh = other.filter((b) => b !== biome.lastTo);
+  const pool = fresh.length ? fresh : other;
+  return pool[(Math.random() * pool.length) | 0];
 }
 const NIGHT_KF = KF.find((k) => k.t === 0.76);
 const curBiome = () => (CITY ? 'city' : CANYON ? 'canyon' : POLAR ? 'polar' : VOLCANO ? 'volcano' : 'lakes');
-function resetBiome() { biome.idx = 0; biome.n = 1; biome.portal = null; biome.target = biomeSeq[0]; }
+function resetBiome() { biome.idx = 0; biome.n = 1; biome.portal = null; biome.lastTo = null; biome.target = 'lakes'; }
 const portalY = (p) => p.y + Math.sin(gtime * 1.3 + p.ph) * 5;
 function updatePortal(dt) {
   let p = biome.portal;
   if (p && p.x < camX - 260) { p = biome.portal = null; biome.n++; }
   if (!p) {
     const x = startX + biome.n * PORTAL_GAP;
-    p = biome.portal = { x, y: rand(190, groundY(x) - 230), ph: rand(0, TAU), to: biomeSeq[(biome.idx + 1) % biomeSeq.length], used: false, t: 0 };
+    p = biome.portal = { x, y: rand(190, groundY(x) - 230), ph: rand(0, TAU), to: pickPortalDest(), used: false, t: 0 };
+    biome.lastTo = p.to;
   }
   if (p.used) { p.t += dt; return; }
   if (bird.prevX < p.x && bird.x >= p.x && Math.abs(bird.y - portalY(p)) < PORTAL_RY * 0.94) {

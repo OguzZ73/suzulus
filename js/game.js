@@ -243,7 +243,7 @@ function startGame() {
   score = 0; dist = 0; startX = bird.x; featherCount = 0; ringCount = 0; thermalCount = 0; combo = 0; comboTimer = 0; maxCombo = 1; shieldHits = 1; lastChanceUsed = false; slowExt = 0;
   applyUpgrades();
   skimT = 0; skimAcc = 0; skimPts = 0; skimOn = false; skimTotal = 0; nearCount = 0; perfectCount = 0;
-  shuffleBiomes(); resetBiome();
+  resetBiome();
   runLvl = lvlAtStart = levelInfo().l; questM = 0; questDone.length = 0;
   for (const q of save.quests) { q.wait = false; if (QUESTS[q.k].one) q.p = 0; }
   el.hudLvl.textContent = String(runLvl);
@@ -584,7 +584,7 @@ function renderShop() {
     for (const p of FEATHER_PACKS) {
       const card = document.createElement('article');
       card.className = 'pack-card' + (p.featured ? ' featured' : '');
-      const priceTxt = nativePackPrices[p.id] || p.price;
+      const priceTxt = nativePackPrices[p.id] || '…';
       card.innerHTML = `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M40 7c-12 0-23 8-28 21l-4 13 4-2 4-9c8 0 18-6 22-16-4 2-8 2-10 2 4-2 8-5 12-9z" fill="#ffd257" stroke="#fff3c8" stroke-width="1.5" stroke-linejoin="round"/></svg><header><span class="pack-badge">${p.badge}</span><h3>${fmt(p.amount)} ${tx('Altın Tüy', 'Golden Feathers')}</h3><span class="pack-sub">${p.title}</span></header><p>${p.ds}</p><footer><button class="buy pack-buy" type="button"${iapBusy ? ' disabled' : ''}>${iapBusy ? tx('İşleniyor…', 'Processing…') : priceTxt}</button></footer>`;
       card.querySelector('.pack-buy').addEventListener('click', () => buyFeatherPack(p));
       shopPacks.appendChild(card);
@@ -743,6 +743,14 @@ function buyFeatherPack(pack) {
     renderShop();
   }
 }
+// the app reports what went wrong as a code; the words follow the game's language, not the phone's
+const IAP_ERRORS = {
+  unavailable: tx('Bu ürün şu an App Store üzerinden yüklenemedi.', 'This item could not be loaded from the App Store right now.'),
+  unverified: tx('Satın alma doğrulanamadı.', 'The purchase could not be verified.'),
+  failed: tx('Satın alma tamamlanamadı.', 'The purchase could not be completed.'),
+  error: tx('Satın alma sırasında bir hata oluştu.', 'Something went wrong during the purchase.'),
+  syncFailed: tx('App Store senkronizasyonu tamamlanamadı.', 'App Store sync could not be completed.'),
+};
 window.onNativeProductsLoaded = (prices) => {
   if (!prices || typeof prices !== 'object') return;
   for (const [id, price] of Object.entries(prices)) {
@@ -775,7 +783,7 @@ window.onNativePurchaseResult = (res) => {
     note(tx('Satın alma onay bekliyor.', 'Purchase is waiting for approval.'));
   } else {
     Sound.deny();
-    note((res && res.error && !EN) ? String(res.error) : tx('Satın alma tamamlanamadı.', 'The purchase could not be completed.'));
+    note(IAP_ERRORS[res && res.code] || IAP_ERRORS.failed);
   }
   if (shopOpen && shopTab === 'packs') renderShop();
 };
@@ -872,7 +880,7 @@ window.onNativeRestoreResult = (res) => {
     }
   } else {
     Sound.deny();
-    note((res && res.error && !EN) ? String(res.error) : tx('App Store senkronizasyonu tamamlanamadı.', 'App Store sync could not be completed.'));
+    note(IAP_ERRORS.syncFailed);
   }
   if (shopOpen && shopTab === 'packs') renderShop();
 };

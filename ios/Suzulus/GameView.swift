@@ -358,7 +358,7 @@ final class Haptics: NSObject, WKScriptMessageHandler, GADFullScreenContentDeleg
                 }
                 self.sendRestoreResult(["ok": true, "restored": restoredCount])
             } catch {
-                self.sendRestoreResult(["ok": false, "error": "App Store senkronizasyonu başarısız oldu."])
+                self.sendRestoreResult(["ok": false, "code": "syncFailed"])
             }
         }
     }
@@ -387,7 +387,7 @@ final class Haptics: NSObject, WKScriptMessageHandler, GADFullScreenContentDeleg
                     self.webView?.evaluateJavaScript("window.onNativeProductsLoaded && window.onNativeProductsLoaded(\(json))", completionHandler: nil)
                 }
             } catch {
-                // App Store Connect products may not be active yet; default prices stay visible.
+                // App Store Connect products may not be active yet; the shop shows a placeholder price.
             }
         }
     }
@@ -421,7 +421,7 @@ final class Haptics: NSObject, WKScriptMessageHandler, GADFullScreenContentDeleg
                     return
                 }
                 #endif
-                self.sendPurchaseResult(["ok": false, "error": "Bu ürün şu an App Store üzerinden yüklenemedi."])
+                self.sendPurchaseResult(["ok": false, "code": "unavailable"])
                 return
             }
 
@@ -433,17 +433,17 @@ final class Haptics: NSObject, WKScriptMessageHandler, GADFullScreenContentDeleg
                     case .verified(let transaction):
                         await self.handleVerifiedTransaction(transaction, fallbackAmount: fallbackAmount)
                     case .unverified:
-                        self.sendPurchaseResult(["ok": false, "error": "Satın alma doğrulanamadı."])
+                        self.sendPurchaseResult(["ok": false, "code": "unverified"])
                     }
                 case .userCancelled:
                     self.sendPurchaseResult(["ok": false, "cancelled": true])
                 case .pending:
                     self.sendPurchaseResult(["ok": false, "pending": true])
                 @unknown default:
-                    self.sendPurchaseResult(["ok": false, "error": "Satın alma tamamlanamadı."])
+                    self.sendPurchaseResult(["ok": false, "code": "failed"])
                 }
             } catch {
-                self.sendPurchaseResult(["ok": false, "error": "Satın alma sırasında bir hata oluştu."])
+                self.sendPurchaseResult(["ok": false, "code": "error"])
             }
         }
     }
