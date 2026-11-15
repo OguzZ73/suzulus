@@ -54,7 +54,9 @@ try { best = parseInt(localStorage.getItem('suzulus-best') || '0', 10) || 0; } c
 function saveBest() { try { localStorage.setItem('suzulus-best', String(best)); } catch (e) { /* ignore */ } }
 
 const weather = { type: 'clear', amt: 1, phase: 'hold', timer: 30, next: 'clear' };
-const WNAMES = { clear: '', snow: 'Kar', rain: 'Fırtına', petals: 'Bahar esintisi', blizzard: 'Kar fırtınası' };
+const WNAMES = EN
+  ? { clear: '', snow: 'Snow', rain: 'Storm', petals: 'Spring breeze', blizzard: 'Blizzard' }
+  : { clear: '', snow: 'Kar', rain: 'Fırtına', petals: 'Bahar esintisi', blizzard: 'Kar fırtınası' };
 
 const keys = { up: false, down: false, left: false, right: false };
 const touch = { up: false, down: false };
@@ -76,6 +78,10 @@ const CAT = {
     { id: 'orman', name: 'Orman · Yaprak Telek', price: 700, ds: 'Katmanlı kuş telekleri, yaprak damarları ve ahşap omurga.', near: ['#e9f2dc', '#acc78f'], far: ['#7f9470', '#97ab86'], sn: ['#2f4a2a', '#6f9b46', '#e8c55a'], sf: ['#22381f', '#557a35', '#b89a46'] },
     { id: 'gece', name: 'Gece mavisi · Hilal', price: 1100, ds: 'Yarımay kavisli tırpan kanat ve parıldayan takımyıldız işlemeleri.', near: ['#4a4f86', '#262a58'], far: ['#2a2d55', '#3a3e6c'], sn: ['#c4b2ff', '#ffd27a', '#8de8ff'], sf: ['#9a8ad0', '#c9a45e', '#6ab6cc'] },
     { id: 'altin', name: 'Altın · Zümrüdüanka', price: 1800, ds: 'Çift katmanlı kraliyet telekleri, altın gaga ve uzun anka kuyruğu.', near: ['#fff3c8', '#e6b452'], far: ['#b48a3e', '#c9a050'], sn: ['#8a5a1a', '#ffffff', '#b8862c'], sf: ['#6a4412', '#e8e0cc', '#8e6a24'] },
+    // the premium line: animated wings that glow, shimmer and trail light
+    { id: 'ejder', premium: true, name: 'Ejder · Kor Kanat', price: 2600, ds: 'Kemik parmaklı ejderha zarı, nabız gibi atan kor damarlar, boynuzlu burun ve kıvılcım saçan dikenli kuyruk.', near: ['#9a2c2c', '#4a1018'], far: ['#521620', '#6b1d24'], sn: ['#ff8a2e', '#2a0a10', '#ffe0a0'], sf: ['#c86a26', '#1c070b', '#d9b47a'] },
+    { id: 'vitray', premium: true, name: 'Vitray · Kelebek', price: 3200, ds: 'Kurşun çerçeveli vitray kelebek kanadı: içinden ışık geçen mücevher camlar, inci benekli kenar ve antenler.', near: ['#2a1c3a', '#1a1028'], far: ['#1c1230', '#241838'], sn: ['#ffd36b', '#120c1c', '#ffffff'], sf: ['#c9a04c', '#0e0a16', '#d8d8e8'] },
+    { id: 'aurora', premium: true, name: 'Aurora · Kuzey Işığı', price: 4000, ds: 'Gece göğünden kesilmiş kanat: üzerinde akan canlı kuzey ışıkları, göz kırpan yıldızlar ve ışıktan kuyruk şeritleri.', near: ['#1b2a5e', '#0e1a3c'], far: ['#141f48', '#1a2a58'], sn: ['#bafff0', '#6f8cff', '#ffffff'], sf: ['#8fd8c8', '#5568c0', '#d8e4ff'] },
   ],
   scarf: [
     { id: 'kirmizi', name: 'Kırmızı', price: 0, c: ['#ea5a4c', '#a92f2b'] },
@@ -91,6 +97,10 @@ const CAT = {
     { id: 'bulut', name: 'Bulut', price: 650, ds: 'Uzun sarı örgülü, beyaz kürklü kuzey parkalı kadın gezgin. Çok uzun süzülür.', stats: 'Kız · Kürklü Parka · Hız: −%5 · Süzülüş: Çok uzun', helmet: '#e8eef4', suit: ['#88c2e8', '#5694c0', '#366890'], arm: ['#467ea8', '#68a2cc'], pants: ['#627284', '#7a8b9e'], boots: ['#845c3e', '#9e704e'], glove: '#f0f5fa', speed: 0.95, climb: 1.05, dive: 0.95, turn: 1, sink: 8, magnet: 1 },
     { id: 'dogan', name: 'Doğan', price: 1000, ds: 'Uzun siyah at kuyruklu, zırhlı karbon hız tulumlu ve pelerinli erkek pilot.', stats: 'Erkek · Zırhlı Tulum · Hız: +%18 · Manevra: Çok keskin', helmet: '#23324d', visor: '#66f0ff', crest: '#ff6e4a', suit: ['#3b455c', '#202736', '#10141d'], arm: ['#191f2b', '#2b3447'], pants: ['#161b26', '#212838'], boots: ['#1a212e', '#263042'], glove: '#161c28', speed: 1.18, climb: 1.25, dive: 1.25, turn: 1.75, sink: 26, magnet: 1.15 },
     { id: 'yildiz', name: 'Yıldız', price: 1500, ds: 'Uzun gece-moru saçlı, altın işlemeli kraliyet elbiseli ve pelerinli kadın pilot.', stats: 'Kız · Kraliyet Elbisesi · Hız: Normal · Çekim: ×2', helmet: '#e6b84a', suit: ['#885ee0', '#5430a0', '#2e1668'], arm: ['#442488', '#643cb8'], pants: ['#231740', '#322258'], boots: ['#b88828', '#dba83c'], glove: '#fff2cc', speed: 1, climb: 1, dive: 1, turn: 1, sink: 30, magnet: 2 },
+    // the premium line: animated outfits with their own light
+    { id: 'kor', premium: true, name: 'Kor', price: 2200, ds: 'Çatlaklarından kor ışığı sızan obsidyen zırhlı, boynuzlu miğferli ejder şövalyesi. Alev pelerini arkasında kıvılcım bırakır.', stats: 'Erkek · Ejder Zırhı · Hız: +%14 · Dalış: Çok güçlü · Çekim: ×1,3', helmet: '#1a1216', visor: '#ffb347', suit: ['#3a2a30', '#1e1418', '#0c080a'], arm: ['#160e12', '#2a1c22'], pants: ['#120c10', '#1c1418'], boots: ['#241418', '#34202a'], glove: '#0e0a0c', speed: 1.14, climb: 1.15, dive: 1.3, turn: 1.5, sink: 28, magnet: 1.3 },
+    { id: 'luna', premium: true, name: 'Luna', price: 2800, ds: 'Uzun gümüş saçlı ay rahibesi: hilal taç, yıldız tutan saydam duvak ve ay ışığı haresi. Neredeyse hiç alçalmadan süzülür.', stats: 'Kız · Ay Cübbesi · Süzülüş: En uzun · Çekim: ×1,7', helmet: '#dfe8ff', suit: ['#f4f8ff', '#bcd0ee', '#7e98c8'], arm: ['#8ea6d0', '#c4d6f2'], pants: ['#5a6a98', '#7486b4'], boots: ['#e8eefc', '#ffffff'], glove: '#ffffff', speed: 0.97, climb: 1.1, dive: 0.95, turn: 1.1, sink: 4, magnet: 1.7 },
+    { id: 'nova', premium: true, name: 'Nova', price: 3400, ds: 'Altın vizörlü cam başlıklı astronot: yanıp sönen gösterge ışıkları, antenli miğfer ve alev püskürten sırt roketi.', stats: 'Astronot · Uzay Giysisi · Hız: +%10 · Manevra: En keskin · Çekim: ×1,5', helmet: '#f4f6fa', visor: '#ffc857', suit: ['#ffffff', '#dfe5ee', '#a8b2c4'], arm: ['#b8c0d0', '#eef2f8'], pants: ['#c8d0dc', '#e6ebf2'], boots: ['#ff7a3c', '#ff9455'], glove: '#ff7a3c', speed: 1.1, climb: 1.2, dive: 1.05, turn: 1.6, sink: 18, magnet: 1.5 },
   ],
 };
 const UPGRADES = [
@@ -121,6 +131,57 @@ const PERKS = {
      { id: 'slow2b', name: 'Hızlı dönüş', ds: 'Zamanın bekleme süresi %35 kısalır.' }],
   ],
 };
+// English names and descriptions, laid over the Turkish catalogue by id
+if (EN) {
+  const tr = {
+    sail: {
+      klasik: ['Classic Delta', 'A balanced triangular delta sail on a classic aluminium frame.'],
+      gunbatimi: ['Sunset · Swallow', 'An arched gull wing, a deep forked tail and sunburst patterns.'],
+      buzul: ['Glacier · Crystal', 'Sharp ice-crystal wingtips and prismatic facets.'],
+      orman: ['Forest · Leaf Quill', 'Layered bird quills, leaf veins and a wooden spine.'],
+      gece: ['Midnight · Crescent', 'A crescent-curved scythe wing with glittering constellation embroidery.'],
+      altin: ['Golden · Phoenix', 'Double-layered royal quills, a golden beak and a long phoenix tail.'],
+      ejder: ['Dragon · Ember Wing', 'A bone-fingered dragon membrane, ember veins that pulse like a heartbeat, a horned nose and a spiked tail that throws sparks.'],
+      vitray: ['Stained Glass · Butterfly', 'A lead-framed stained-glass butterfly wing: jewel glass lit from within, pearl-dotted edges and antennae.'],
+      aurora: ['Aurora · Northern Lights', 'A wing cut from the night sky: living northern lights flowing across it, twinkling stars and ribbons of light for a tail.'],
+    },
+    scarf: { kirmizi: ['Red'], turkuaz: ['Turquoise'], sari: ['Mustard'], mor: ['Purple'], beyaz: ['Snow white'], zumrut: ['Emerald'] },
+    pilot: {
+      ruzgar: ['Breeze', 'A young explorer with messy chestnut hair and a fur-lined leather flight jacket. Good at everything.', 'Male · Leather Jacket · Speed: Normal · Handling: Balanced'],
+      atmaca: ['Hawk', 'A pilot with long red hair in a burgundy hunter’s tunic with a golden sash. Flies faster.', 'Female · Hunter Tunic · Speed: +8% · Handling: Standard'],
+      bulut: ['Cloud', 'A northern traveller with long blonde braids in a white fur-trimmed parka. Glides for a very long time.', 'Female · Fur Parka · Speed: −5% · Glide: Very long'],
+      dogan: ['Falcon', 'A pilot with a long black ponytail, an armoured carbon speed suit and a cape.', 'Male · Armoured Suit · Speed: +18% · Handling: Very sharp'],
+      yildiz: ['Star', 'A pilot with long midnight-purple hair in a gold-embroidered royal gown and cape.', 'Female · Royal Gown · Speed: Normal · Magnet: ×2'],
+      kor: ['Ember', 'A dragon knight in horned helm and obsidian armour, ember light seeping through the cracks. A cape of flame leaves sparks behind.', 'Male · Dragon Armour · Speed: +14% · Dive: Very strong · Magnet: ×1.3'],
+      luna: ['Luna', 'A moon priestess with long silver hair: a crescent crown, a sheer star-filled veil and a halo of moonlight. Glides with almost no sink.', 'Female · Moon Robe · Glide: Longest · Magnet: ×1.7'],
+      nova: ['Nova', 'An astronaut in a glass helmet with a gold visor: blinking indicator lights, an antenna and a flame-spitting jetpack.', 'Astronaut · Space Suit · Speed: +10% · Handling: Sharpest · Magnet: ×1.5'],
+    },
+  };
+  for (const k of Object.keys(tr)) for (const it of CAT[k]) {
+    const e = tr[k][it.id];
+    if (!e) continue;
+    it.name = e[0];
+    if (e[1]) it.ds = e[1];
+    if (e[2]) it.stats = e[2];
+  }
+  const up = { dash: 'Wind dash', shield: 'Light shield', slow: 'Slow time' };
+  for (const u of UPGRADES) u.name = up[u.id];
+  const pk = {
+    dash1a: ['Combo breath', 'The combo timer does not run down while you dash.'],
+    dash1b: ['Wide magnet', 'While dashing you pull in feathers from much farther away.'],
+    dash2a: ['Piercing dash', 'Dash through hawks, balloons and kites to smash them.'],
+    dash2b: ['Short breath', 'Dash cooldown is 35% shorter.'],
+    shield1a: ['Double layer', 'The shield takes two hits before it breaks.'],
+    shield1b: ['Quick repair', 'A broken shield’s cooldown is halved.'],
+    shield2a: ['Shockwave', 'When the shield breaks it wipes out nearby hawks, balloons and kites.'],
+    shield2b: ['Last chance', 'Once per flight you survive a fatal crash.'],
+    slow1a: ['Golden time', 'While time is slowed every feather counts double.'],
+    slow1b: ['Deep focus', 'Time slows down much more.'],
+    slow2a: ['Stretched moment', 'While time is slowed every feather makes it last longer (up to +3 s).'],
+    slow2b: ['Quick return', 'Slow time cooldown is 35% shorter.'],
+  };
+  for (const p of Object.values(PERKS).flat(2)) { p.name = pk[p.id][0]; p.ds = pk[p.id][1]; }
+}
 const PERK_IDS = Object.values(PERKS).flat(2).map((p) => p.id);
 // everything in the workshop has to be saved up for
 for (const k of Object.keys(CAT)) for (const it of CAT[k]) it.price *= 3;
@@ -157,6 +218,15 @@ const FEATHER_PACKS = [
   { id: 'com.suzulus.oyun.feathers1800', amount: 1800, title: 'Altın Hazine', badge: 'En Popüler · %33 Avantajlı', price: '₺79,99', ds: 'Yeni bir pilotu veya ileri seviye kanatları anında aç.', featured: true },
   { id: 'com.suzulus.oyun.feathers5000', amount: 5000, title: 'Gökyüzü Hazinesi', badge: 'En Karlı · %50 Avantajlı', price: '₺169,99', ds: 'Zümrüdüanka kanadı ve Yıldız pilotu dahil en üst ekipmanları aç.', featured: true },
 ];
+if (EN) {
+  const en = [
+    ['Starter Pouch', 'Starter', 'Unlock your first skill upgrade or scarf right away.'],
+    ['Wind Chest', '20% Bonus', 'Unlock your first wing and the basic skill upgrades.'],
+    ['Golden Hoard', 'Most Popular · 33% Bonus', 'Instantly unlock a new pilot or advanced wings.'],
+    ['Sky Treasure', 'Best Value · 50% Bonus', 'Unlock top gear, including the Phoenix wing and the Star pilot.'],
+  ];
+  FEATHER_PACKS.forEach((p, i) => { [p.title, p.badge, p.ds] = en[i]; });
+}
 let reviveUsed = false, doubleUsed = false, paidEarned = 0, lastEarned = 0;
 function todayKey() {
   const now = new Date();
@@ -180,16 +250,16 @@ function levelInfo() {
 }
 // goal and reward by tier; "one" missions must be done within a single flight
 const QUESTS = {
-  dist: { t: (g) => `Toplam ${fmt(g)} m uç`, goal: [1500, 3000, 5000, 8000], xp: [40, 70, 100, 150] },
-  feather: { t: (g) => `${g} altın tüy topla`, goal: [40, 80, 140, 220], xp: [40, 70, 100, 140] },
-  ring: { t: (g) => `${g} rüzgar halkasından geç`, goal: [8, 15, 25, 40], xp: [40, 65, 95, 130] },
-  thermal: { t: (g) => `${g} hava akımı yakala`, goal: [4, 8, 14, 20], xp: [35, 60, 90, 120] },
-  near: { t: (g) => `${g} kıl payı geçiş yap`, goal: [5, 10, 18, 30], xp: [45, 75, 110, 150] },
-  portal: { t: (g) => `${g} portaldan geç`, goal: [1, 2, 3, 5], xp: [40, 70, 100, 150] },
-  skill: { t: (g) => `Yetenekleri ${g} kez kullan`, goal: [6, 12, 20, 30], xp: [30, 50, 75, 100] },
-  oneDist: { one: true, t: (g) => `Tek uçuşta ${fmt(g)} m uç`, goal: [400, 700, 1100, 1600], xp: [45, 80, 120, 170] },
-  oneScore: { one: true, t: (g) => `Tek uçuşta ${fmt(g)} puan yap`, goal: [1500, 4000, 8000, 15000], xp: [45, 80, 120, 170] },
-  oneCombo: { one: true, t: (g) => `Tek uçuşta ×${g} komboya ulaş`, goal: [3, 4, 5, 6], xp: [45, 75, 110, 150] },
+  dist: { t: (g) => tx(`Toplam ${fmt(g)} m uç`, `Fly ${fmt(g)} m in total`), goal: [1500, 3000, 5000, 8000], xp: [40, 70, 100, 150] },
+  feather: { t: (g) => tx(`${g} altın tüy topla`, `Collect ${g} golden feathers`), goal: [40, 80, 140, 220], xp: [40, 70, 100, 140] },
+  ring: { t: (g) => tx(`${g} rüzgar halkasından geç`, `Fly through ${g} wind rings`), goal: [8, 15, 25, 40], xp: [40, 65, 95, 130] },
+  thermal: { t: (g) => tx(`${g} hava akımı yakala`, `Catch ${g} air currents`), goal: [4, 8, 14, 20], xp: [35, 60, 90, 120] },
+  near: { t: (g) => tx(`${g} kıl payı geçiş yap`, `Make ${g} near misses`), goal: [5, 10, 18, 30], xp: [45, 75, 110, 150] },
+  portal: { t: (g) => tx(`${g} portaldan geç`, `Fly through ${g} portals`), goal: [1, 2, 3, 5], xp: [40, 70, 100, 150] },
+  skill: { t: (g) => tx(`Yetenekleri ${g} kez kullan`, `Use skills ${g} times`), goal: [6, 12, 20, 30], xp: [30, 50, 75, 100] },
+  oneDist: { one: true, t: (g) => tx(`Tek uçuşta ${fmt(g)} m uç`, `Fly ${fmt(g)} m in one flight`), goal: [400, 700, 1100, 1600], xp: [45, 80, 120, 170] },
+  oneScore: { one: true, t: (g) => tx(`Tek uçuşta ${fmt(g)} puan yap`, `Score ${fmt(g)} points in one flight`), goal: [1500, 4000, 8000, 15000], xp: [45, 80, 120, 170] },
+  oneCombo: { one: true, t: (g) => tx(`Tek uçuşta ×${g} komboya ulaş`, `Reach a ×${g} combo in one flight`), goal: [3, 4, 5, 6], xp: [45, 75, 110, 150] },
 };
 const questDone = []; // missions finished during the current flight
 let questM = 0, runLvl = 1, lvlAtStart = 1;
@@ -208,9 +278,9 @@ function finishQuest(i) {
   // the next mission takes this one's place and starts counting on the following flight
   save.quests[i] = newQuest(true);
   persist();
-  popup(`Görev tamamlandı  +${q.xp} XP`, '#ffd27a', true);
+  popup(tx(`Görev tamamlandı  +${q.xp} XP`, `Mission complete  +${q.xp} XP`), '#ffd27a', true);
   const now = levelInfo().l;
-  if (now > before) { popup(`Seviye ${now}`, '#ffffff', true); el.hudLvl.textContent = String(now); }
+  if (now > before) { popup(tx(`Seviye ${now}`, `Level ${now}`), '#ffffff', true); el.hudLvl.textContent = String(now); }
   Sound.record(); buzz([15, 30, 15]);
 }
 // count n more toward every running mission of this kind
@@ -236,13 +306,13 @@ function questMax(kind, v) {
 }
 function progHTML(over) {
   const L = levelInfo(), esc = (t) => t.replace(/</g, '&lt;');
-  let h = `<div class="lvl"><span class="lv">Seviye ${L.l}</span><i class="bar"><b style="width:${L.max ? 100 : Math.round((L.x / L.need) * 100)}%"></b></i><span class="xp">${L.max ? 'En üst seviye' : `${fmt(L.x)} / ${fmt(L.need)} XP`}</span></div>`;
-  if (over && L.l > lvlAtStart) h += `<p class="lvup">Seviye atladın: ${L.l}. seviye · başlangıç hızın arttı</p>`;
-  h += '<h3>Görevler</h3><ul class="quests">';
+  let h = `<div class="lvl"><span class="lv">${tx('Seviye', 'Level')} ${L.l}</span><i class="bar"><b style="width:${L.max ? 100 : Math.round((L.x / L.need) * 100)}%"></b></i><span class="xp">${L.max ? tx('En üst seviye', 'Max level') : `${fmt(L.x)} / ${fmt(L.need)} XP`}</span></div>`;
+  if (over && L.l > lvlAtStart) h += (EN ? `<p class="lvup">Level up: level ${L.l} · your starting speed went up</p>` : `<p class="lvup">Seviye atladın: ${L.l}. seviye · başlangıç hızın arttı</p>`);
+  h += `<h3>${tx('Görevler', 'Missions')}</h3><ul class="quests">`;
   if (over) for (const d of questDone) h += `<li class="done"><span class="qt">✓ ${esc(d.text)}</span><span class="qx">+${d.xp} XP</span></li>`;
   for (const q of save.quests) {
     const shown = Math.floor(q.p);
-    h += `<li${q.wait && over ? ' class="wait"' : ''}><span class="qt">${esc(QUESTS[q.k].t(q.goal))}<span class="qp">${q.wait && over ? 'yeni' : `${fmt(shown)} / ${fmt(q.goal)}`}</span></span><span class="qx">${q.xp} XP</span><i class="bar"><b style="width:${Math.round((q.p / q.goal) * 100)}%"></b></i></li>`;
+    h += `<li${q.wait && over ? ' class="wait"' : ''}><span class="qt">${esc(QUESTS[q.k].t(q.goal))}<span class="qp">${q.wait && over ? tx('yeni', 'new') : `${fmt(shown)} / ${fmt(q.goal)}`}</span></span><span class="qx">${q.xp} XP</span><i class="bar"><b style="width:${Math.round((q.p / q.goal) * 100)}%"></b></i></li>`;
   }
   return h + '</ul>';
 }
@@ -304,7 +374,7 @@ const el = {
   btnShopAd: $('btnShopAd'), overAds: $('overAds'), btnRevive: $('btnRevive'), btnDouble: $('btnDouble'),
   adDialog: $('adDialog'), adTitle: $('adTitle'), adTimer: $('adTimer'), btnAdClose: $('btnAdClose'), adCanvas: $('adCanvas'), adFill: $('adFill'), adDesc: $('adDesc'), adCaption: $('adCaption'),
 };
-const fmt = (n) => Math.floor(n).toLocaleString('tr-TR');
+const fmt = (n) => Math.floor(n).toLocaleString(EN ? 'en-US' : 'tr-TR');
 const skillEls = {};
 document.querySelectorAll('.skill').forEach((b) => {
   skillEls[b.dataset.skill] = b;
@@ -314,7 +384,31 @@ document.querySelectorAll('.skill').forEach((b) => {
 el.menuBest.textContent = fmt(best);
 el.btnMute.classList.toggle('muted', Sound.muted);
 
-const TIPS = [
+const TIPS = EN ? [
+  'Passing very close to an obstacle gives a near-miss bonus and grows your combo.',
+  'If you touch the ground with the shield up, the shield breaks but you bounce back into the air.',
+  'During a wind dash distance points double and feathers are pulled in from farther away.',
+  'The blue spirit orb recharges all your skills at once.',
+  'When a storm cloud flashes, stay away from the column marked with a dashed line.',
+  'A red marker on the right edge of the screen shows a hawk coming in.',
+  'Flying through the middle of a wind ring gives you a short burst of speed.',
+  'Blue slowing rings brake you at once; handy before a tight gap when you are going fast.',
+  'Do a new trick before the combo timer runs out and the multiplier keeps growing.',
+  'Fly into a shimmering air current and the glider climbs on its own while your combo grows.',
+  'Spend the feathers you collect in the Shop on new wings, pilots and upgrades.',
+  'In the land of lakes and waterfalls, watch out for the domes and baskets of drifting hot-air balloons.',
+  'Every 250 metres and every air current you catch adds extra feathers to your purse.',
+  'Every 1,200 metres a portal appears in the sky; Red Canyon, the Pole and Fire Valley come in a different order every flight.',
+  'Diving speeds the glider up and climbing slows it down; lift the nose before a narrow gap to catch your breath.',
+  'Glide within a wing’s length of the ground to score “ground skim” points and keep your combo alive.',
+  'Hit the light right in the centre of a wind ring for a “bullseye”: double points and extra combo.',
+  'Missions give XP, XP raises your level, and the higher your level the faster you start each flight.',
+  'Fly through the portal to jump to another land; fly past it and you stay where you are.',
+  'Your best flight flies beside you as a pale ghost; pass it for points, outlast it for bonus feathers.',
+  'In Fire Valley lava columns are marked with a dashed line before they erupt; wait for them to die down or fly over.',
+  'On a touch screen, use the buttons on the right to climb and dive; slide your finger to switch between them. Skills are on the left.',
+  'At the Pole the sky is always in twilight; it is the best place to see the northern lights and the Milky Way.',
+] : [
   'Bir engelin çok yakınından geçmek kıl payı bonusu verir ve komboyu büyütür.',
   'Kalkan açıkken yere değersen kalkan kırılır ama sen havaya sekersin.',
   'Rüzgar atılımı sırasında mesafe puanı iki katına çıkar ve tüyler sana daha uzaktan çekilir.',

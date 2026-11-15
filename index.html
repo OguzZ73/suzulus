@@ -17,31 +17,31 @@
 <link rel="stylesheet" href="css/style.css">
 
 
-<canvas id="game" aria-label="Süzülüş oyun alanı"></canvas>
+<canvas id="game" aria-label="Süzülüş oyun alanı" data-en-aria="Süzülüş game area"></canvas>
 
 <div class="ui" lang="tr">
   <div class="phase" id="phase"></div>
   <div class="countdown" id="countdown" hidden></div>
-  <div class="watchtag" id="watchTag" hidden>İzleme modu</div>
+  <div class="watchtag" id="watchTag" hidden data-en="Watch mode">İzleme modu</div>
   <div class="layoutbar" id="layoutBar" hidden>
-    <span class="layout-hint">Sürükleyerek taşı</span>
+    <span class="layout-hint" data-en="Drag to move">Sürükleyerek taşı</span>
     <label class="layout-size" for="btnSize">
-      <span>Boyut</span>
-      <input type="range" id="btnSize" min="70" max="150" step="5" value="100" aria-label="Düğme boyutu" aria-valuetext="100%">
+      <span data-en="Size">Boyut</span>
+      <input type="range" id="btnSize" min="70" max="150" step="5" value="100" aria-label="Düğme boyutu" data-en-aria="Button size" aria-valuetext="100%">
       <b id="btnSizeV">100%</b>
     </label>
-    <button class="ghost small" id="btnLayoutReset" type="button">Sıfırla</button>
-    <button class="ghost small solid" id="btnLayoutDone" type="button">Bitti</button>
+    <button class="ghost small" id="btnLayoutReset" type="button" data-en="Reset">Sıfırla</button>
+    <button class="ghost small solid" id="btnLayoutDone" type="button" data-en="Done">Bitti</button>
   </div>
 
   <div class="corner">
-    <span class="best" id="hudBestWrap" hidden>En iyi <b id="hudBest">0</b></span>
-    <button class="icon-btn" id="btnPause" type="button" aria-label="Duraklat (P)" hidden>
+    <span class="best" id="hudBestWrap" hidden data-en="Best">En iyi <b id="hudBest">0</b></span>
+    <button class="icon-btn" id="btnPause" type="button" aria-label="Duraklat (P)" data-en-aria="Pause (P)" hidden>
       <svg viewBox="0 0 24 24">
         <path d="M9 6v12M15 6v12" />
       </svg>
     </button>
-    <button class="icon-btn" id="btnMute" type="button" hidden aria-label="Sesi aç / kapat (M)">
+    <button class="icon-btn" id="btnMute" type="button" hidden aria-label="Sesi aç / kapat (M)" data-en-aria="Sound on / off (M)">
       <svg viewBox="0 0 24 24">
         <path d="M4 9.5v5h4l5 4v-13l-5 4z" />
         <path class="on" d="M16.5 9c1.4 1.6 1.4 4.4 0 6M19 6.5c2.8 3 2.8 8 0 11" />
@@ -53,44 +53,44 @@
   <div class="hud" id="hud" hidden>
     <div class="hud-tl">
       <div class="score" id="score">0</div>
-      <div class="meta">Sv <span id="hudLvl">1</span> · <span id="dist">0</span> m · <span id="feathers">0</span> tüy</div>
+      <div class="meta"><span data-en="Lv">Sv</span> <span id="hudLvl">1</span> · <span id="dist">0</span> m · <span id="feathers">0</span> <span data-en="feathers">tüy</span></div>
       <div class="combo" id="combo" hidden><span class="m" id="mult">×2</span><i><b id="comboFill"></b></i></div>
     </div>
-    <div class="fly" id="fly" aria-label="Uçuş kontrolleri">
-      <button class="fly-btn" id="flyUp" type="button" tabindex="-1" aria-label="Yüksel"><svg viewBox="0 0 24 24">
+    <div class="fly" id="fly" aria-label="Uçuş kontrolleri" data-en-aria="Flight controls">
+      <button class="fly-btn" id="flyUp" type="button" tabindex="-1" aria-label="Yüksel" data-en-aria="Climb"><svg viewBox="0 0 24 24">
           <path d="M5 15l7-7 7 7" />
         </svg></button>
-      <button class="fly-btn" id="flyDown" type="button" tabindex="-1" aria-label="Dal"><svg viewBox="0 0 24 24">
+      <button class="fly-btn" id="flyDown" type="button" tabindex="-1" aria-label="Dal" data-en-aria="Dive"><svg viewBox="0 0 24 24">
           <path d="M5 9l7 7 7-7" />
         </svg></button>
     </div>
     <div class="skills" id="skills">
       <button class="skill" data-skill="dash" type="button" tabindex="-1" style="--c: var(--gold)"
-        aria-label="Rüzgar atılımı (S)">
+        aria-label="Rüzgar atılımı (S)" data-en-aria="Wind dash (S)">
         <span class="cd"></span><span class="k">S</span>
         <svg viewBox="0 0 24 24">
           <path d="M3 8h8M2 12h11M3 16h8" />
           <path d="M13 5l7 7-7 7" />
         </svg>
-        <span class="n">Atılım</span>
+        <span class="n" data-en="Dash">Atılım</span>
       </button>
       <button class="skill" data-skill="shield" type="button" tabindex="-1" style="--c: var(--cyan)"
-        aria-label="Işık kalkanı (D)">
+        aria-label="Işık kalkanı (D)" data-en-aria="Light shield (D)">
         <span class="cd"></span><span class="k">D</span>
         <svg viewBox="0 0 24 24">
           <path d="M12 3l7.5 3v5.6c0 4.6-3.1 7.8-7.5 9.4-4.4-1.6-7.5-4.8-7.5-9.4V6z" />
           <path d="M12 8v6" />
         </svg>
-        <span class="n">Kalkan</span>
+        <span class="n" data-en="Shield">Kalkan</span>
       </button>
       <button class="skill" data-skill="slow" type="button" tabindex="-1" style="--c: var(--lilac)"
-        aria-label="Zamanı yavaşlat (F)">
+        aria-label="Zamanı yavaşlat (F)" data-en-aria="Slow time (F)">
         <span class="cd"></span><span class="k">F</span>
         <svg viewBox="0 0 24 24">
           <path d="M7 3h10M7 21h10" />
           <path d="M8 3v2c0 3 4 4.6 4 7s-4 4-4 7v2M16 3v2c0 3-4 4.6-4 7s4 4 4 7v2" />
         </svg>
-        <span class="n">Zaman</span>
+        <span class="n" data-en="Time">Zaman</span>
       </button>
     </div>
   </div>
@@ -115,13 +115,13 @@
         <path d="M60 10 L98 29 L60 17 L22 29 Z" fill="#fff6df" opacity="0.85" />
       </svg>
       <p class="intro-title">Süzülüş</p>
-      <span class="intro-sub">Rüzgar yükseliyor…</span>
+      <span class="intro-sub" data-en="The wind is rising…">Rüzgar yükseliyor…</span>
     </div>
   </div>
 
   <section class="screen" id="menu" hidden>
     <div class="hero">
-      <p class="eyebrow">Yapay kanatlarla sonsuz bir yolculuk</p>
+      <p class="eyebrow" data-en="An endless journey on handmade wings">Yapay kanatlarla sonsuz bir yolculuk</p>
       <h1 class="title" aria-label="Süzülüş">
         <span class="title-word" aria-hidden="true"><span style="--i:0">S</span><span style="--i:1">ü</span><span style="--i:2">z</span><span style="--i:3">ü</span><span style="--i:4">l</span><span style="--i:5">ü</span><span style="--i:6">ş</span></span>
         <svg class="title-wind" viewBox="0 0 660 150" preserveAspectRatio="none" aria-hidden="true">
@@ -130,15 +130,15 @@
           <path d="M40 136 C160 120 300 148 430 130 S600 122 640 132"/>
         </svg>
       </h1>
-      <p class="lede">Kendi yaptığın kanatlarla karlı dağların, şelalelerin, göllerin ve fırtınaların üzerinden süzül.
+      <p class="lede" data-en="Glide over snowy mountains, waterfalls, lakes and storms on wings you built yourself. Collect golden feathers, grow your combo through wind rings, and stay clear of rocks and hawks.">Kendi yaptığın kanatlarla karlı dağların, şelalelerin, göllerin ve fırtınaların üzerinden süzül.
         Altın tüyleri topla, rüzgar halkalarıyla komboyu büyüt, kayalara ve şahinlere çarpma.</p>
       <div class="row">
-        <button class="cta" id="btnStart" type="button">Uçuşa başla <span class="kbd dark">Space</span></button>
-        <button class="ghost" id="btnShop" type="button">Mağaza</button>
-        <button class="ghost" id="btnWatch" type="button">İzle</button>
-        <button class="ghost" id="btnSettings" type="button">Ayarlar</button>
-        <span class="best-line">En iyi skor <b id="menuBest">0</b></span>
-        <span class="purse" title="Tüy kesesi"><svg viewBox="0 0 24 24" aria-hidden="true">
+        <button class="cta" id="btnStart" type="button" data-en="Start flight">Uçuşa başla <span class="kbd dark">Space</span></button>
+        <button class="ghost" id="btnShop" type="button" data-en="Shop">Mağaza</button>
+        <button class="ghost" id="btnWatch" type="button" data-en="Watch">İzle</button>
+        <button class="ghost" id="btnSettings" type="button" data-en="Settings">Ayarlar</button>
+        <span class="best-line" data-en="Best score">En iyi skor <b id="menuBest">0</b></span>
+        <span class="purse" title="Tüy kesesi" data-en-title="Feather purse"><svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M20 3c-6 0-12 4-14 11l-2 7 2-1 2-5c4 0 9-3 11-8-2 1-4 1-5 1 2-1 4-3 6-5z" />
           </svg><span id="menuPurse">0</span></span>
       </div>
@@ -149,17 +149,17 @@
   <section class="screen center" id="shop" hidden>
     <div class="card shop" role="dialog" aria-labelledby="shopTitle">
       <div class="shop-head">
-        <h2 id="shopTitle">Mağaza</h2>
+        <h2 id="shopTitle" data-en="Shop">Mağaza</h2>
         <button class="ad-btn shop-ad" id="btnShopAd" type="button">🎬 Video · +50 tüy (2/2)</button>
-        <span class="purse" title="Tüy kesesi"><svg viewBox="0 0 24 24" aria-hidden="true">
+        <span class="purse" title="Tüy kesesi" data-en-title="Feather purse"><svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M20 3c-6 0-12 4-14 11l-2 7 2-1 2-5c4 0 9-3 11-8-2 1-4 1-5 1 2-1 4-3 6-5z" />
-          </svg><span id="shopPurse">0</span> tüy</span>
-        <button class="ghost" id="btnShopClose" type="button">Kapat <span class="kbd">Esc</span></button>
+          </svg><span id="shopPurse">0</span> <span data-en="feathers">tüy</span></span>
+        <button class="ghost" id="btnShopClose" type="button" data-en="Close">Kapat <span class="kbd">Esc</span></button>
       </div>
       <div class="shop-body">
         <div class="shop-side">
           <div class="shop-preview"><canvas id="shopPreview" width="400" height="400"
-              aria-label="Seçili görünüm"></canvas></div>
+              aria-label="Seçili görünüm" data-en-aria="Selected look"></canvas></div>
           <div class="shop-detail" id="shopDetail" hidden>
             <b id="sdName"></b><span class="st" id="sdStats"></span>
             <p id="sdDesc"></p>
@@ -167,17 +167,17 @@
           </div>
         </div>
         <div class="shop-main">
-          <div class="tabs" role="tablist" aria-label="Mağaza bölümleri">
-            <button class="tab" role="tab" data-tab="sail" aria-selected="true" type="button">Kanat</button>
-            <button class="tab" role="tab" data-tab="scarf" aria-selected="false" type="button">Atkı</button>
-            <button class="tab" role="tab" data-tab="pilot" aria-selected="false" type="button">Karakter</button>
-            <button class="tab" role="tab" data-tab="up" aria-selected="false" type="button">Yükseltme</button>
-            <button class="tab tab-packs" role="tab" data-tab="packs" aria-selected="false" type="button">✦ Altın Tüy</button>
+          <div class="tabs" role="tablist" aria-label="Mağaza bölümleri" data-en-aria="Shop sections">
+            <button class="tab" role="tab" data-tab="sail" aria-selected="true" type="button" data-en="Wings">Kanat</button>
+            <button class="tab" role="tab" data-tab="scarf" aria-selected="false" type="button" data-en="Scarves">Atkı</button>
+            <button class="tab" role="tab" data-tab="pilot" aria-selected="false" type="button" data-en="Pilots">Karakter</button>
+            <button class="tab" role="tab" data-tab="up" aria-selected="false" type="button" data-en="Upgrades">Yükseltme</button>
+            <button class="tab tab-packs" role="tab" data-tab="packs" aria-selected="false" type="button" data-en="✦ Golden Feathers">✦ Altın Tüy</button>
           </div>
           <div class="grid" id="shopGrid"></div>
           <div class="ups" id="shopUps" hidden></div>
           <div class="packs" id="shopPacks" hidden></div>
-          <p class="shop-note" id="shopNote">Uçuşlarda topladığın tüyler buraya birikir.</p>
+          <p class="shop-note" id="shopNote" data-en="Feathers you collect in flight are saved here.">Uçuşlarda topladığın tüyler buraya birikir.</p>
         </div>
       </div>
     </div>
@@ -185,49 +185,50 @@
 
   <section class="screen center" id="pause" hidden>
     <div class="card pausecard">
-      <p class="eyebrow" id="pauseEyebrow">Mola</p>
-      <h2 id="pauseTitle">Oyun duraklatıldı</h2>
-      <div class="settings" aria-label="Oyun ve ses ayarları">
-        <p class="card-h">Oyun ve ses ayarları</p>
-        <label class="vol"><span>Müzik</span><input type="range" id="volMusic" min="0" max="100" step="5"
-            aria-label="Müzik ses düzeyi"><b id="volMusicV"></b></label>
-        <label class="vol"><span>Oyun sesleri</span><input type="range" id="volSfx" min="0" max="100" step="5"
-            aria-label="Oyun sesleri düzeyi"><b id="volSfxV"></b></label>
-        <div class="vol"><span>Ses</span><button class="ghost small" id="btnMuteAll" type="button"
+      <p class="eyebrow" id="pauseEyebrow" data-en="Break">Mola</p>
+      <h2 id="pauseTitle" data-en="Game paused">Oyun duraklatıldı</h2>
+      <div class="settings" aria-label="Oyun ve ses ayarları" data-en-aria="Game and sound settings">
+        <p class="card-h" data-en="Game and sound settings">Oyun ve ses ayarları</p>
+        <label class="vol"><span data-en="Music">Müzik</span><input type="range" id="volMusic" min="0" max="100" step="5"
+            aria-label="Müzik ses düzeyi" data-en-aria="Music volume"><b id="volMusicV"></b></label>
+        <label class="vol"><span data-en="Sound effects">Oyun sesleri</span><input type="range" id="volSfx" min="0" max="100" step="5"
+            aria-label="Oyun sesleri düzeyi" data-en-aria="Sound effects volume"><b id="volSfxV"></b></label>
+        <div class="vol"><span data-en="Sound">Ses</span><button class="ghost small" id="btnMuteAll" type="button"
             aria-pressed="true">Açık</button></div>
-        <div class="vol"><span>Gölge pilot</span><button class="ghost small" id="btnGhostToggle" type="button"
+        <div class="vol"><span data-en="Language">Dil</span><div class="legal-btns"><button class="ghost small" id="btnLangTr" type="button" lang="tr">Türkçe</button><button class="ghost small" id="btnLangEn" type="button" lang="en">English</button></div></div>
+        <div class="vol"><span data-en="Ghost pilot">Gölge pilot</span><button class="ghost small" id="btnGhostToggle" type="button"
             aria-pressed="true">Açık</button></div>
-        <div class="vol"><span>Düğmeler</span><button class="ghost small" id="btnLayout" type="button">Yer ve boyut</button></div>
-        <div class="vol"><span>Belgeler</span><div class="legal-btns"><button class="ghost small" id="btnSetPrivacy" type="button">Gizlilik</button><button class="ghost small" id="btnSetTerms" type="button">Koşullar (EULA)</button></div></div>
-        <div class="vol" id="adPrivacyRow" hidden><span>Reklamlar</span><button class="ghost small" id="btnAdPrivacy" type="button">Gizlilik seçenekleri</button></div>
+        <div class="vol"><span data-en="Buttons">Düğmeler</span><button class="ghost small" id="btnLayout" type="button" data-en="Position and size">Yer ve boyut</button></div>
+        <div class="vol"><span data-en="Documents">Belgeler</span><div class="legal-btns"><button class="ghost small" id="btnSetPrivacy" type="button" data-en="Privacy">Gizlilik</button><button class="ghost small" id="btnSetTerms" type="button" data-en="Terms (EULA)">Koşullar (EULA)</button></div></div>
+        <div class="vol" id="adPrivacyRow" hidden><span data-en="Ads">Reklamlar</span><button class="ghost small" id="btnAdPrivacy" type="button" data-en="Privacy options">Gizlilik seçenekleri</button></div>
       </div>
       <div class="row">
-        <button class="cta" id="btnResume" type="button">Devam et <span class="kbd dark">P</span></button>
-        <button class="ghost" id="btnQuit" type="button">Ana menü</button>
+        <button class="cta" id="btnResume" type="button" data-en="Resume">Devam et <span class="kbd dark">P</span></button>
+        <button class="ghost" id="btnQuit" type="button" data-en="Main menu">Ana menü</button>
       </div>
     </div>
   </section>
 
   <section class="screen" id="over" hidden>
     <div class="card result">
-      <p class="eyebrow">Yolculuk sona erdi</p>
+      <p class="eyebrow" data-en="Journey over">Yolculuk sona erdi</p>
       <div class="big" id="finalScore">0</div>
-      <p class="record" id="record" hidden>Yeni rekor</p>
+      <p class="record" id="record" hidden data-en="New record">Yeni rekor</p>
       <dl class="stats">
         <div>
-          <dt>Mesafe</dt>
+          <dt data-en="Distance">Mesafe</dt>
           <dd id="stDist">0 m</dd>
         </div>
         <div>
-          <dt>Tüy</dt>
+          <dt data-en="Feathers">Tüy</dt>
           <dd id="stFeathers">0</dd>
         </div>
         <div>
-          <dt>Halka</dt>
+          <dt data-en="Rings">Halka</dt>
           <dd id="stRings">0</dd>
         </div>
         <div>
-          <dt>Kombo</dt>
+          <dt data-en="Combo">Kombo</dt>
           <dd id="stCombo">×1</dd>
         </div>
       </dl>
@@ -235,12 +236,12 @@
       <div class="prog" id="overProg"></div>
       <p class="tip" id="tip"></p>
       <div class="ad-row" id="overAds">
-        <button class="ad-btn revive-btn" id="btnRevive" type="button">🎬 İzle ve devam et</button>
+        <button class="ad-btn revive-btn" id="btnRevive" type="button" data-en="🎬 Watch and continue">🎬 İzle ve devam et</button>
         <button class="ad-btn double-btn" id="btnDouble" type="button">🎬 2× Altın tüy</button>
       </div>
       <div class="row">
-        <button class="cta" id="btnRetry" type="button">Tekrar uç <span class="kbd dark">Space</span></button>
-        <button class="ghost" id="btnMenu" type="button">Ana menü</button>
+        <button class="cta" id="btnRetry" type="button" data-en="Fly again">Tekrar uç <span class="kbd dark">Space</span></button>
+        <button class="ghost" id="btnMenu" type="button" data-en="Main menu">Ana menü</button>
       </div>
     </div>
   </section>
@@ -248,18 +249,18 @@
   <dialog class="ad-dialog" id="adDialog" aria-labelledby="adTitle" closedby="none">
     <div class="ad-card">
       <div class="ad-top">
-        <span class="ad-badge">SPONSORLU VİDEO</span>
-        <strong id="adTitle">Ödüllü Video</strong>
+        <span class="ad-badge" data-en="SPONSORED VIDEO">SPONSORLU VİDEO</span>
+        <strong id="adTitle" data-en="Rewarded Video">Ödüllü Video</strong>
         <span class="ad-timer" id="adTimer">5 sn</span>
-        <button class="ad-close" id="btnAdClose" type="button" aria-label="Videoyu kapat">✕</button>
+        <button class="ad-close" id="btnAdClose" type="button" aria-label="Videoyu kapat" data-en-aria="Close video">✕</button>
       </div>
       <div class="ad-stage">
         <canvas id="adCanvas" width="520" height="260"></canvas>
-        <div class="ad-overlay" id="adCaption">Süzülüş · Altın Tüy Sponsoru</div>
+        <div class="ad-overlay" id="adCaption" data-en="Süzülüş · Golden Feather Sponsor">Süzülüş · Altın Tüy Sponsoru</div>
       </div>
       <div class="ad-bar"><span id="adFill"></span></div>
       <div class="ad-foot">
-        <span id="adDesc">Video tamamlandığında ödülün otomatik verilir.</span>
+        <span id="adDesc" data-en="Your reward is given automatically when the video ends.">Video tamamlandığında ödülün otomatik verilir.</span>
       </div>
     </div>
   </dialog>
@@ -267,19 +268,20 @@
   <dialog class="ad-dialog legal-dialog" id="legalDialog" closedby="any" aria-labelledby="legalTitle">
     <div class="ad-card">
       <div class="ad-top">
-        <strong id="legalTitle">Gizlilik Politikası</strong>
-        <form method="dialog"><button class="ad-close" type="submit" aria-label="Kapat" autofocus>✕</button></form>
+        <strong id="legalTitle" data-en="Privacy Policy">Gizlilik Politikası</strong>
+        <form method="dialog"><button class="ad-close" type="submit" aria-label="Kapat" data-en-aria="Close" autofocus>✕</button></form>
       </div>
       <div class="legal-body" id="legalBody"></div>
       <div class="ad-foot legal-foot">
-        <button class="legal-link" id="btnAppleEula" type="button">Apple Standart EULA</button>
-        <form method="dialog"><button class="ghost small solid" type="submit">Kapat</button></form>
+        <button class="legal-link" id="btnAppleEula" type="button" data-en="Apple Standard EULA">Apple Standart EULA</button>
+        <form method="dialog"><button class="ghost small solid" type="submit" data-en="Close">Kapat</button></form>
       </div>
     </div>
   </dialog>
 </div>
 
 
+<script src="js/i18n.js"></script>
 <script src="js/rain-audio.js"></script>
 <script src="js/core.js"></script>
 <script src="js/audio.js"></script>

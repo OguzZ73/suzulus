@@ -50,7 +50,7 @@ function smash(o) {
 function useLastChance() {
   if (!perk('shield2b') || lastChanceUsed) return false;
   lastChanceUsed = true; shieldHits = 1;
-  popup('Son şans!', '#bdf2ff', true);
+  popup(tx('Son şans!', 'Last chance!'), '#bdf2ff', true);
   flash = Math.max(flash, RM ? 0.1 : 0.3);
   return true;
 }
@@ -63,13 +63,13 @@ function breakShield(o, free) {
   sparks(bird.x, bird.y, 18, 'cyan', 300);
   if (o) smash(o);
   // a double shield only cracks the first time
-  if (!free && shieldHits > 1) { shieldHits--; popup('Kalkan çatladı', '#bdf2ff'); return; }
+  if (!free && shieldHits > 1) { shieldHits--; popup(tx('Kalkan çatladı', 'Shield cracked'), '#bdf2ff'); return; }
   if (!free) { sk.shield.t = 0; sk.shield.cd = SK.shield.cd * (perk('shield1b') ? 0.5 : 1); }
   if (perk('shield2a')) {
     shock(bird.x, bird.y, 'rgba(150,235,255,', 260);
     for (const q of obstacles) if (!q.dead && SMASHABLE.includes(q.type) && Math.hypot(q.x - bird.x, (q.oy ?? q.y) - bird.y) < 300) smash(q);
   }
-  popup('Kalkan seni korudu', '#bdf2ff');
+  popup(tx('Kalkan seni korudu', 'The shield saved you'), '#bdf2ff');
 }
 function die() {
   buzz([40, 40, 110]);
@@ -105,7 +105,7 @@ function collect(it) {
     for (const n of SKILL_NAMES) if (sk[n].t <= 0) sk[n].cd = 0;
     const pts = 250 * mult();
     addScore(pts);
-    popup(`Ruh küresi: yetenekler yenilendi  +${pts}`, '#9fdcff', true);
+    popup(tx(`Ruh küresi: yetenekler yenilendi  +${pts}`, `Spirit orb: skills recharged  +${pts}`), '#9fdcff', true);
     sparks(it.x, it.y, 24, 'blue', 280);
     shock(it.x, it.y, 'rgba(140,210,255,', 90);
     Sound.orb();
@@ -123,7 +123,7 @@ function ringPass(it) {
     ringSlow = 1.8; ringBoost = 0;
     bird.speed = Math.max(170, bird.speed - 230);
     shock(bird.x, bird.y, 'rgba(165,215,255,', 60);
-    popup(`Yavaşlatma halkası  +${pts}`, '#cfe9ff');
+    popup(tx(`Yavaşlatma halkası  +${pts}`, `Slowing ring  +${pts}`), '#cfe9ff');
     sparks(it.x, it.y, 16, 'cyan', 200);
     Sound.ringSlow();
     return;
@@ -137,7 +137,7 @@ function ringPass(it) {
   ringBoost = 1.6;
   bird.speed += 240;
   shock(bird.x, bird.y, 'rgba(255,236,190,', 60);
-  popup(perfect ? `Tam isabet  +${pts}` : `Rüzgar halkası  +${pts}`, perfect ? '#ffe08a' : '#fff1c9', perfect);
+  popup(perfect ? tx(`Tam isabet  +${pts}`, `Bullseye  +${pts}`) : tx(`Rüzgar halkası  +${pts}`, `Wind ring  +${pts}`), perfect ? '#ffe08a' : '#fff1c9', perfect);
   sparks(it.x, it.y, 16, 'gold', 220);
   Sound.ring();
 }
@@ -147,7 +147,7 @@ function nearMiss() {
   bumpCombo();
   const pts = 60 * mult();
   addScore(pts);
-  popup(`Kıl payı  +${pts}`, '#ffffff');
+  popup(tx(`Kıl payı  +${pts}`, `Near miss  +${pts}`), '#ffffff');
   Sound.near();
 }
 
@@ -167,7 +167,7 @@ function updateGhost(gdt, dt) {
       g.done = true;
       const pts = 500 * mult();
       addScore(pts); ghostFeathers += 20;
-      popup(`Hayaleti geride bıraktın  +${pts} · +20 tüy`, '#bdf2ff', true);
+      popup(tx(`Hayaleti geride bıraktın  +${pts} · +20 tüy`, `You outlasted the ghost  +${pts} · +20 feathers`), '#bdf2ff', true);
       Sound.record();
     }
     return;
@@ -182,13 +182,13 @@ function updateGhost(gdt, dt) {
     g.behind = false; g.cool = 6;
     const pts = 50 * mult();
     addScore(pts);
-    popup(`Hayaleti geçtin  +${pts}`, '#bdf2ff');
+    popup(tx(`Hayaleti geçtin  +${pts}`, `You passed the ghost  +${pts}`), '#bdf2ff');
     Sound.near();
   }
 }
 // flying within a wingspan of the ground: points tick up, the combo stays alive, dust kicks up behind
 function endSkim() {
-  if (skimOn && skimPts > 0) popup(`Yer sıyırma  +${skimPts}`, '#e8f6ff');
+  if (skimOn && skimPts > 0) popup(tx(`Yer sıyırma  +${skimPts}`, `Ground skim  +${skimPts}`), '#e8f6ff');
   skimT = 0; skimAcc = 0; skimPts = 0; skimOn = false;
 }
 function updateSkim(gdt) {
@@ -289,12 +289,14 @@ function showGameOver() {
   el.stFeathers.textContent = String(featherCount);
   el.stRings.textContent = String(ringCount);
   el.stCombo.textContent = '×' + maxCombo;
-  el.tip.textContent = 'İpucu: ' + TIPS[(Math.random() * TIPS.length) | 0];
+  el.tip.textContent = tx('İpucu: ', 'Tip: ') + TIPS[(Math.random() * TIPS.length) | 0];
   // feathers from this flight go into the purse; every 10 thermals caught is worth a bonus
   const earned = featherCount + Math.floor(dist / 10 / 250) + thermalCount * 2 + missionFeathers + ghostFeathers;
   // how the race against the ghost ended, then the better flight becomes the next ghost
   let race = '';
-  if (ghostRun) race = ghostRun.done ? '<br>Hayalet yarışı: en iyi uçuşundan daha uzun uçtun.' : `<br>Hayalet yarışı: hayaletin <b>${fmt(Math.abs(ghostRun.lead) / 10)} m</b> ${ghostRun.lead >= 0 ? 'önündeydin' : 'gerisindeydin'}.`;
+  if (ghostRun) race = ghostRun.done ? tx('<br>Hayalet yarışı: en iyi uçuşundan daha uzun uçtun.', '<br>Ghost race: you flew farther than your best flight.')
+    : EN ? `<br>Ghost race: you were <b>${fmt(Math.abs(ghostRun.lead) / 10)} m</b> ${ghostRun.lead >= 0 ? 'ahead of' : 'behind'} the ghost.`
+    : `<br>Hayalet yarışı: hayaletin <b>${fmt(Math.abs(ghostRun.lead) / 10)} m</b> ${ghostRun.lead >= 0 ? 'önündeydin' : 'gerisindeydin'}.`;
   if (rec && rec.length >= 30 && (!ghost || final >= ghost.score)) {
     ghost = { d: rec.slice(), score: final };
     try { localStorage.setItem('suzulus-ghost', JSON.stringify(ghost)); } catch (e) { /* too large or blocked: the ghost lasts for this session only */ }
@@ -340,9 +342,9 @@ function openSettings() {
   if (state !== 'menu') return;
   Sound.init();
   settingsOpen = true;
-  $('pauseEyebrow').textContent = 'Tercihler';
-  $('pauseTitle').textContent = 'Ayarlar';
-  $('btnResume').textContent = 'Kapat';
+  $('pauseEyebrow').textContent = tx('Tercihler', 'Preferences');
+  $('pauseTitle').textContent = tx('Ayarlar', 'Settings');
+  $('btnResume').textContent = tx('Kapat', 'Close');
   $('btnQuit').hidden = true;
   el.menu.hidden = true;
   el.pause.hidden = false;
@@ -358,9 +360,9 @@ function pauseGame() {
   settingsOpen = false;
   state = 'paused';
   keys.up = keys.down = keys.left = keys.right = false;
-  $('pauseEyebrow').textContent = 'Mola';
-  $('pauseTitle').textContent = 'Oyun duraklatıldı';
-  $('btnResume').innerHTML = 'Devam et <span class="kbd dark">P</span>';
+  $('pauseEyebrow').textContent = tx('Mola', 'Break');
+  $('pauseTitle').textContent = tx('Oyun duraklatıldı', 'Game paused');
+  $('btnResume').innerHTML = tx('Devam et', 'Resume') + ' <span class="kbd dark">P</span>';
   $('btnQuit').hidden = false;
   el.pause.hidden = false;
 }
@@ -502,6 +504,9 @@ function swatch(k, it) {
   if (k === 'sail') {
     const bg = `linear-gradient(135deg, rgba(15,20,34,0.82), rgba(28,36,56,0.55))`;
     const shapes = {
+      ejder: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 36"><g id="h"><path d="M60 7 L80 3 L115 13 Q105 16 101 25 Q93 18 85 28 Q79 20 71 30 L60 22 Z" fill="#8a2628" stroke="#1c0a0e" stroke-width="1.6" stroke-linejoin="round"/><path d="M78 5 L101 24 M78 5 L85 27 M78 5 L71 29" stroke="#ff9a3c" stroke-width="1.3" stroke-linecap="round" fill="none"/><path d="M60 7 L80 3 L115 13" stroke="#1c0a0e" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M61 5 Q66 0 73 1 Q67 3 64 7 Z" fill="#e8dcc0"/></g><use href="#h" transform="translate(120 0) scale(-1 1)"/><circle cx="60" cy="8" r="2.2" fill="#ffd98a"/></svg>`,
+      vitray: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 36"><g id="h"><path d="M60 6 C76 0 104 2 114 14 C118 22 108 30 96 28 Q88 33 80 28 Q72 33 66 27 L60 22 Z" fill="#1a1028" stroke="#0e0a16" stroke-width="1.5"/><path d="M63 9 L84 5 L80 15 Z" fill="#ff5d6c"/><path d="M87 5 L107 11 L93 18 L83 15 Z" fill="#ffb23e"/><path d="M63 12 L79 18 L69 24 Z" fill="#3fa9f5"/><path d="M82 19 L92 20 L95 26 L82 26 Z" fill="#3fd6a0"/><path d="M96 19 L109 14 L111 21 L99 25 Z" fill="#a070ff"/><path d="M72 26 L79 21 L80 27 Z" fill="#ffe45c"/><circle cx="104" cy="26" r="1" fill="#fff"/><circle cx="88" cy="29" r="1" fill="#fff"/><circle cx="73" cy="29" r="1" fill="#fff"/></g><use href="#h" transform="translate(120 0) scale(-1 1)"/><path d="M60 5 L60 24" stroke="#ffd36b" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+      aurora: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 36"><defs><linearGradient id="a" x1="0" x2="1"><stop offset="0" stop-color="#e070ff"/><stop offset=".25" stop-color="#6f8cff"/><stop offset=".5" stop-color="#3fe0b0"/><stop offset=".75" stop-color="#6f8cff"/><stop offset="1" stop-color="#e070ff"/></linearGradient></defs><path d="M60 4 C84 2 104 12 116 28 Q100 22 90 30 Q80 22 70 30 L60 24 L50 30 Q40 22 30 30 Q20 22 4 28 C16 12 36 2 60 4 Z" fill="#141f48" stroke="#c8fff2" stroke-width="1.5"/><path d="M60 9 C80 8 96 15 107 25 M60 14 C76 13 88 19 97 26 M60 19 C70 19 78 22 84 26 M60 9 C40 8 24 15 13 25 M60 14 C44 13 32 19 23 26 M60 19 C50 19 42 22 36 26" stroke="url(#a)" stroke-width="3" fill="none" stroke-linecap="round" opacity=".92"/><path d="M60 1 L61.3 4.7 L65 6 L61.3 7.3 L60 11 L58.7 7.3 L55 6 L58.7 4.7 Z" fill="#fff"/><circle cx="88" cy="14" r="1" fill="#fff"/><circle cx="34" cy="13" r="1" fill="#fff"/></svg>`,
       klasik: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 36"><path d="M60 4 L112 28 Q84 24 60 29 Q36 24 8 28 Z" fill="${it.near[0]}" stroke="${it.sn[0]}" stroke-width="2.2"/><path d="M60 7 L103 26 L94 26 L60 11 L26 26 L17 26 Z" fill="${it.sn[1]}"/><line x1="60" y1="4" x2="60" y2="31" stroke="#3b4252" stroke-width="2"/></svg>`,
       gunbatimi: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 36"><path d="M60 6 C80 2 98 12 114 27 Q92 18 76 31 L60 21 L44 31 Q28 18 6 27 C22 12 40 2 60 6 Z" fill="${it.near[0]}" stroke="${it.sn[0]}" stroke-width="2"/><path d="M60 8 C78 5 94 13 108 25 Q91 18 76 28 L60 18 L44 28 Q29 18 12 25 C26 13 42 5 60 8 Z" fill="${it.sn[1]}" opacity="0.65"/><circle cx="60" cy="14" r="4" fill="${it.sn[2]}"/></svg>`,
       buzul: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 36"><polygon points="60,3 88,9 115,26 95,22 86,30 71,22 60,33 49,22 34,30 25,22 5,26 32,9" fill="${it.near[0]}" stroke="${it.sn[0]}" stroke-width="1.8"/><polygon points="60,5 86,11 71,21 60,31 49,21 34,11" fill="${it.sn[1]}" opacity="0.55"/><polygon points="60,8 66,18 60,27 54,18" fill="${it.sn[2]}"/></svg>`,
@@ -514,6 +519,9 @@ function swatch(k, it) {
   if (k === 'scarf') return `linear-gradient(90deg, ${it.c[0]}, ${it.c[1]})`;
   const bg = `linear-gradient(135deg, ${it.suit[2]} 0%, ${it.suit[0]} 55%, rgba(20,26,44,0.9) 100%)`;
   const portraits = {
+    kor: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 36"><path d="M34 28 L54 23 L74 28 L78 36 L28 36 Z" fill="#1e1418" stroke="#ff9a3c" stroke-width="1.2"/><path d="M40 31 L46 27 L50 32 L56 27 L62 31" stroke="#ff9a3c" stroke-width="1.2" fill="none"/><path d="M45 15 C30 9 20 15 8 11 C16 18 24 21 12 27 C26 27 36 23 46 21 Z" fill="#5a1218"/><path d="M43 17 C32 14 24 18 16 17 C24 21 32 21 43 20 Z" fill="#ff7a2e"/><circle cx="54" cy="19" r="9.4" fill="#1a1216"/><path d="M48 12 Q41 3 30 3 Q39 8 44 16 Z" fill="#d8c8a8"/><path d="M56 10 Q53 1 43 0 Q50 4 51 11 Z" fill="#d8c8a8"/><path d="M53 17 L64 16 L62 20 L54 21 Z" fill="#ffb347"/><path d="M52 23 L62 22 L59 27 L53 27 Z" fill="#2a1c22"/></svg>`,
+    luna: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 36"><circle cx="54" cy="16" r="15" fill="#ffffff" opacity=".12"/><path d="M35 28 Q54 23 71 28 L75 36 L31 36 Z" fill="#dfe8ff" stroke="#7fe8e0" stroke-width="1.3"/><path d="M49 9 C33 5 18 13 6 10 C15 18 22 24 9 28 C24 31 38 26 50 24 Z" fill="#b9c6e6"/><path d="M47 13 C33 11 22 18 13 17 C23 22 34 23 47 21 Z" fill="#ffffff"/><circle cx="54" cy="19" r="9.2" fill="#f6d2ba"/><path d="M44 17 A11 10 0 0 1 64 15 Q54 12 44 19 Z" fill="#eef2ff"/><path d="M60 1 A5.5 5.5 0 1 0 66 8 A4.2 4.2 0 1 1 60 1 Z" fill="#ffe9a8"/><circle cx="59" cy="19" r="2.4" fill="#3fd8cc"/><circle cx="57" cy="23" r="2" fill="#f08aa0" opacity=".45"/></svg>`,
+    nova: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 36"><path d="M30 16 L17 12 L20 20 L30 22 Z" fill="#7fd4ff"/><rect x="29" y="11" width="13" height="16" rx="3" fill="#c8d0dc" stroke="#8a94a8"/><path d="M33 28 Q54 22 73 28 L77 36 L29 36 Z" fill="#eef2f8" stroke="#a8b2c4" stroke-width="1.2"/><rect x="47" y="29.5" width="14" height="5.5" rx="1.5" fill="#39445c"/><circle cx="50.5" cy="32.2" r="1.3" fill="#ff5a5a"/><circle cx="54" cy="32.2" r="1.3" fill="#5aff8a"/><circle cx="57.5" cy="32.2" r="1.3" fill="#5ab4ff"/><path d="M50 8 L47 2" stroke="#8a94a8" stroke-width="1.2"/><circle cx="47" cy="2.4" r="1.7" fill="#ff5a5a"/><circle cx="55" cy="18" r="11" fill="#f4f6fa" stroke="#a8b2c4" stroke-width="1.2"/><path d="M50 12 Q63 9 65 19 Q63 26 53 25 Q47 19 50 12 Z" fill="#ffc857" stroke="#8a5a1a" stroke-width=".8"/><path d="M53 13.5 Q59 11.5 62 15.5" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`,
     ruzgar: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 36"><path d="M36 28 Q52 22 68 28 L72 36 L32 36 Z" fill="#8c5a32"/><circle cx="46" cy="28" r="3.5" fill="#f0e6d2"/><circle cx="58" cy="28" r="3.5" fill="#f0e6d2"/><path d="M36 15 L22 12 L27 17 L20 20 L35 21 Z" fill="#5c3620"/><circle cx="52" cy="19" r="9.5" fill="#e4b892"/><path d="M41 18 A11 11 0 0 1 63 16 L54 19 L49 26 L44 23 Z" fill="#d8d2c4"/><path d="M47 18 L52 18 L50 26 L45 24 Z" fill="#6e472b"/><path d="M58 14 L65 12 L62 17 Z" fill="#5c3620"/><circle cx="58" cy="15" r="3.6" fill="#a7dcec" stroke="#c99a4a" stroke-width="1.5"/></svg>`,
     atmaca: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 36"><path d="M36 28 Q54 23 70 28 L74 36 L32 36 Z" fill="#a62836" stroke="#f0c050" stroke-width="1.4"/><path d="M48 9 C32 7 18 14 8 11 C15 18 24 22 10 26 C24 28 36 25 49 24 Z" fill="#c83828"/><path d="M46 13 C32 12 20 18 13 17 C22 22 33 22 46 21 Z" fill="#ff734f"/><circle cx="54" cy="19" r="9.2" fill="#f2c4a2"/><path d="M44 14 Q54 9 63 14 L61 17 Q53 13 44 17 Z" fill="#a82420"/><path d="M55 18 L63 16" stroke="#ffbe42" stroke-width="2.6" stroke-linecap="round"/><circle cx="58" cy="22" r="2" fill="#eb696e" opacity="0.45"/></svg>`,
     bulut: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 36"><path d="M35 28 Q54 23 71 28 L75 36 L31 36 Z" fill="#5896c2"/><circle cx="45" cy="28" r="3.8" fill="#fff"/><circle cx="54" cy="29" r="3.8" fill="#fff"/><circle cx="63" cy="28" r="3.8" fill="#fff"/><g fill="#f0c452" stroke="#b88628" stroke-width="1"><ellipse cx="41" cy="20" rx="4.5" ry="2.8" transform="rotate(-18 41 20)"/><ellipse cx="34" cy="22" rx="4.5" ry="2.8" transform="rotate(18 34 22)"/><ellipse cx="27" cy="23" rx="4.2" ry="2.6" transform="rotate(-18 27 23)"/><ellipse cx="20" cy="24" rx="3.8" ry="2.4" transform="rotate(18 20 24)"/><path d="M16 24 L10 22 L11 27 Z" fill="#f0c452"/></g><circle cx="16" cy="24" r="2" fill="#4fd1c5"/><circle cx="54" cy="19" r="9.2" fill="#f5cbb0"/><path d="M43 18 A11 10 0 0 1 64 16 Z" fill="#dce5f0"/><circle cx="48" cy="17" r="3.5" fill="#fff"/><circle cx="55" cy="14" r="3.8" fill="#fff"/><circle cx="62" cy="15" r="3.2" fill="#fff"/><circle cx="59" cy="19" r="3" fill="#ff9ec7" stroke="#d4a24e" stroke-width="1.2"/></svg>`,
@@ -532,7 +540,7 @@ function perkRow(n) {
     const open = save.up[n] >= PERK_LVL[t];
     const line = document.createElement('div');
     line.className = 'tier' + (open ? '' : ' shut');
-    line.innerHTML = `<span class="tl">${open ? 'Dal ' + (t + 1) : 'Sv ' + PERK_LVL[t]}</span>`;
+    line.innerHTML = `<span class="tl">${open ? tx('Dal ', 'Branch ') + (t + 1) : tx('Sv ', 'Lv ') + PERK_LVL[t]}</span>`;
     for (const p of tier) {
       const own = save.perkOwn.includes(p.id), on = save.perkOn[n][t] === p.id;
       const b = document.createElement('button');
@@ -540,17 +548,17 @@ function perkRow(n) {
       b.className = 'perk' + (on ? ' on' : '') + (own ? ' own' : '') + (perkSel === p.id ? ' sel' : '');
       b.disabled = !open;
       b.title = p.ds;
-      b.innerHTML = `<b>${p.name}</b><span>${p.ds}</span><em>${on ? 'Aktif' : own ? 'Seç' : fmt(PERK_COST[t]) + ' tüy'}</em>`;
+      b.innerHTML = `<b>${p.name}</b><span>${p.ds}</span><em>${on ? tx('Aktif', 'Active') : own ? tx('Seç', 'Select') : fmt(PERK_COST[t]) + tx(' tüy', ' feathers')}</em>`;
       b.addEventListener('click', () => {
         if (!open || on) return;
         // phones hide the descriptions: the first tap tells what it does, the second takes it
-        if (MOBILE && perkSel !== p.id) { perkSel = p.id; note(`${p.name}: ${p.ds} ${own ? 'Seçmek' : 'Almak'} için tekrar dokun.`); renderShop(); return; }
+        if (MOBILE && perkSel !== p.id) { perkSel = p.id; note(EN ? `${p.name}: ${p.ds} Tap again to ${own ? 'select' : 'buy'}.` : `${p.name}: ${p.ds} ${own ? 'Seçmek' : 'Almak'} için tekrar dokun.`); renderShop(); return; }
         perkSel = null;
         if (!own) {
-          if (save.purse < PERK_COST[t]) { note(`${p.name} için ${fmt(PERK_COST[t] - save.purse)} tüy daha gerekiyor.`); Sound.deny(); return; }
+          if (save.purse < PERK_COST[t]) { note(tx(`${p.name} için ${fmt(PERK_COST[t] - save.purse)} tüy daha gerekiyor.`, `You need ${fmt(PERK_COST[t] - save.purse)} more feathers for ${p.name}.`)); Sound.deny(); return; }
           save.purse -= PERK_COST[t]; save.perkOwn.push(p.id); updatePurse();
-          note(`${p.name} açıldı.`); Sound.ring();
-        } else { note(`${p.name} seçildi.`); Sound.feather(2); }
+          note(tx(`${p.name} açıldı.`, `${p.name} unlocked.`)); Sound.ring();
+        } else { note(tx(`${p.name} seçildi.`, `${p.name} selected.`)); Sound.feather(2); }
         save.perkOn[n][t] = p.id;
         persist(); applyUpgrades(); renderShop();
       });
@@ -577,15 +585,15 @@ function renderShop() {
       const card = document.createElement('article');
       card.className = 'pack-card' + (p.featured ? ' featured' : '');
       const priceTxt = nativePackPrices[p.id] || p.price;
-      card.innerHTML = `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M40 7c-12 0-23 8-28 21l-4 13 4-2 4-9c8 0 18-6 22-16-4 2-8 2-10 2 4-2 8-5 12-9z" fill="#ffd257" stroke="#fff3c8" stroke-width="1.5" stroke-linejoin="round"/></svg><header><span class="pack-badge">${p.badge}</span><h3>${fmt(p.amount)} Altın Tüy</h3><span class="pack-sub">${p.title}</span></header><p>${p.ds}</p><footer><button class="buy pack-buy" type="button"${iapBusy ? ' disabled' : ''}>${iapBusy ? 'İşleniyor…' : priceTxt}</button></footer>`;
+      card.innerHTML = `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M40 7c-12 0-23 8-28 21l-4 13 4-2 4-9c8 0 18-6 22-16-4 2-8 2-10 2 4-2 8-5 12-9z" fill="#ffd257" stroke="#fff3c8" stroke-width="1.5" stroke-linejoin="round"/></svg><header><span class="pack-badge">${p.badge}</span><h3>${fmt(p.amount)} ${tx('Altın Tüy', 'Golden Feathers')}</h3><span class="pack-sub">${p.title}</span></header><p>${p.ds}</p><footer><button class="buy pack-buy" type="button"${iapBusy ? ' disabled' : ''}>${iapBusy ? tx('İşleniyor…', 'Processing…') : priceTxt}</button></footer>`;
       card.querySelector('.pack-buy').addEventListener('click', () => buyFeatherPack(p));
       shopPacks.appendChild(card);
     }
     const legal = document.createElement('div');
     legal.className = 'packs-legal';
-    legal.innerHTML = `<button class="legal-link" type="button" data-action="restore">Satın Almaları Geri Yükle</button>
-      <button class="legal-link" type="button" data-legal="privacy">Gizlilik Politikası</button>
-      <button class="legal-link" type="button" data-legal="terms">Kullanım Koşulları (EULA)</button>`;
+    legal.innerHTML = `<button class="legal-link" type="button" data-action="restore">${tx('Satın Almaları Geri Yükle', 'Restore Purchases')}</button>
+      <button class="legal-link" type="button" data-legal="privacy">${tx('Gizlilik Politikası', 'Privacy Policy')}</button>
+      <button class="legal-link" type="button" data-legal="terms">${tx('Kullanım Koşulları (EULA)', 'Terms of Use (EULA)')}</button>`;
     legal.querySelector('[data-action="restore"]').addEventListener('click', restorePurchases);
     legal.querySelector('[data-legal="privacy"]').addEventListener('click', () => openLegal('privacy'));
     legal.querySelector('[data-legal="terms"]').addEventListener('click', () => openLegal('terms'));
@@ -601,17 +609,17 @@ function renderShop() {
       row.className = 'up';
       const dur = (base.dur * (1 + 0.15 * l)).toFixed(1), cd = (base.cd * (1 - 0.1 * l)).toFixed(1);
       row.innerHTML = `<div class="nm"><span class="kbd">${u.key}</span> ${u.name}<span class="pips">${'<i class="f"></i>'.repeat(l)}${'<i></i>'.repeat(UP_MAX - l)}</span></div>
-        <div class="ds">Süre ${dur} sn · bekleme ${cd} sn${l < UP_MAX ? ' → sonraki seviye: süre +%15, bekleme −%10' : ' · en üst seviye'}</div>`;
+        <div class="ds">${EN ? `Duration ${dur} s · cooldown ${cd} s${l < UP_MAX ? ' → next level: duration +15%, cooldown −10%' : ' · max level'}` : `Süre ${dur} sn · bekleme ${cd} sn${l < UP_MAX ? ' → sonraki seviye: süre +%15, bekleme −%10' : ' · en üst seviye'}`}</div>`;
       const b = document.createElement('button');
       b.className = 'buy'; b.type = 'button';
-      b.textContent = l >= UP_MAX ? 'Tamamlandı' : `${fmt(cost)} tüy`;
+      b.textContent = l >= UP_MAX ? tx('Tamamlandı', 'Maxed') : `${fmt(cost)} ${tx('tüy', 'feathers')}`;
       b.disabled = l >= UP_MAX;
       b.addEventListener('click', () => {
         if (save.up[u.id] >= UP_MAX) return;
         const c = UP_COST[save.up[u.id]];
-        if (save.purse < c) { note(`Bu yükseltme için ${fmt(c - save.purse)} tüy daha gerekiyor.`); Sound.deny(); return; }
+        if (save.purse < c) { note(tx(`Bu yükseltme için ${fmt(c - save.purse)} tüy daha gerekiyor.`, `You need ${fmt(c - save.purse)} more feathers for this upgrade.`)); Sound.deny(); return; }
         save.purse -= c; save.up[u.id]++; persist(); applyUpgrades(); updatePurse();
-        note(`${u.name} seviye ${save.up[u.id]} oldu.`); Sound.ring();
+        note(tx(`${u.name} seviye ${save.up[u.id]} oldu.`, `${u.name} is now level ${save.up[u.id]}.`)); Sound.ring();
         renderShop();
       });
       row.appendChild(b);
@@ -627,8 +635,8 @@ function renderShop() {
     const owned = save.owned[shopTab].includes(it.id), on = save.equip[shopTab] === it.id;
     const b = document.createElement('button');
     b.type = 'button';
-    b.className = 'item' + (on ? ' on' : '') + (owned ? '' : ' locked');
-    b.innerHTML = `<span class="sw"></span><span class="nm">${it.name}</span>${it.stats ? `<span class="st">${it.stats}</span>` : ''}${it.ds ? `<span class="ds">${it.ds}</span>` : ''}<span class="pr${owned ? ' own' : ''}">${on ? 'Kullanılıyor' : owned ? 'Seç' : fmt(it.price) + ' tüy'}</span>`;
+    b.className = 'item' + (on ? ' on' : '') + (owned ? '' : ' locked') + (it.premium ? ' premium' : '');
+    b.innerHTML = `<span class="sw"></span>${it.premium ? `<span class="tag">${tx('✦ Özel', '✦ Special')}</span>` : ''}<span class="nm">${it.name}</span>${it.stats ? `<span class="st">${it.stats}</span>` : ''}${it.ds ? `<span class="ds">${it.ds}</span>` : ''}<span class="pr${owned ? ' own' : ''}">${on ? tx('Kullanılıyor', 'In use') : owned ? tx('Seç', 'Select') : fmt(it.price) + tx(' tüy', ' feathers')}</span>`;
     // set as a property: the swatch's url("…") would end a double-quoted style attribute early
     b.querySelector('.sw').style.background = swatch(shopTab, it);
     if (MOBILE) {
@@ -649,13 +657,13 @@ function renderShop() {
 function buyOrEquip(it, b) {
   if (!save.owned[shopTab].includes(it.id)) {
     if (save.purse < it.price) {
-      note(`${it.name} için ${fmt(it.price - save.purse)} tüy daha gerekiyor.`);
+      note(tx(`${it.name} için ${fmt(it.price - save.purse)} tüy daha gerekiyor.`, `You need ${fmt(it.price - save.purse)} more feathers for ${it.name}.`));
       b.classList.remove('deny'); void b.offsetWidth; b.classList.add('deny'); Sound.deny();
       return;
     }
     save.purse -= it.price; save.owned[shopTab].push(it.id);
-    note(`${it.name} senin oldu.`); Sound.orb();
-  } else note(`${it.name} seçildi.`);
+    note(tx(`${it.name} senin oldu.`, `${it.name} is yours.`)); Sound.orb();
+  } else note(tx(`${it.name} seçildi.`, `${it.name} selected.`));
   save.equip[shopTab] = it.id;
   persist(); applyLook(); updatePurse(); renderShop();
 }
@@ -668,7 +676,7 @@ function renderShopDetail() {
   $('sdName').textContent = it.name;
   $('sdStats').textContent = it.stats || '';
   $('sdDesc').textContent = it.ds || '';
-  btn.textContent = on ? 'Kuşanıldı' : owned ? 'Kuşan' : `${fmt(it.price)} tüy · Satın al`;
+  btn.textContent = on ? tx('Kuşanıldı', 'Equipped') : owned ? tx('Kuşan', 'Equip') : tx(`${fmt(it.price)} tüy · Satın al`, `${fmt(it.price)} feathers · Buy`);
   btn.disabled = on;
   btn.classList.toggle('poor', !owned && save.purse < it.price);
 }
@@ -677,7 +685,7 @@ function openShop() {
   if (state !== 'menu') return;
   Sound.init();
   shopOpen = true; el.menu.hidden = true; shopEl.hidden = false;
-  note('Uçuşlarda topladığın tüyler buraya birikir.');
+  note(tx('Uçuşlarda topladığın tüyler buraya birikir.', 'Feathers you collect in flight are saved here.'));
   updatePurse();
   updateShopAdBtn();
   renderShop();
@@ -709,7 +717,7 @@ const shopHeadPurse = $('shopPurse') && $('shopPurse').parentElement;
 if (shopHeadPurse) {
   shopHeadPurse.setAttribute('role', 'button');
   shopHeadPurse.tabIndex = 0;
-  shopHeadPurse.title = 'Altın tüy paketlerini gör';
+  shopHeadPurse.title = tx('Altın tüy paketlerini gör', 'See golden feather packs');
   shopHeadPurse.addEventListener('click', () => { shopTab = 'packs'; renderShop(); });
   shopHeadPurse.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); shopTab = 'packs'; renderShop(); }
@@ -720,18 +728,18 @@ function buyFeatherPack(pack) {
   const iapBridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.iap;
   if (!iapBridge) {
     Sound.deny();
-    note('Altın tüy satın alma yalnızca iOS App Store uygulamasında aktiftir.');
+    note(tx('Altın tüy satın alma yalnızca iOS App Store uygulamasında aktiftir.', 'Golden feather purchases are only available in the iOS App Store app.'));
     return;
   }
   iapBusy = true;
-  note(`${pack.title} için App Store bağlantısı açılıyor…`);
+  note(tx(`${pack.title} için App Store bağlantısı açılıyor…`, `Opening the App Store for ${pack.title}…`));
   renderShop();
   try {
     iapBridge.postMessage({ action: 'purchase', productId: pack.id, amount: pack.amount });
   } catch (e) {
     iapBusy = false;
     Sound.deny();
-    note('Satın alma başlatılamadı.');
+    note(tx('Satın alma başlatılamadı.', 'The purchase could not be started.'));
     renderShop();
   }
 }
@@ -758,16 +766,16 @@ window.onNativePurchaseResult = (res) => {
       persist();
       updatePurse();
       Sound.orb(); buzz(24);
-      note(`+${fmt(amount)} altın tüy kesene eklendi!`);
+      note(tx(`+${fmt(amount)} altın tüy kesene eklendi!`, `+${fmt(amount)} golden feathers added to your purse!`));
     } else persist();
     ack();
   } else if (res && res.cancelled) {
-    note('Satın alma iptal edildi.');
+    note(tx('Satın alma iptal edildi.', 'Purchase cancelled.'));
   } else if (res && res.pending) {
-    note('Satın alma onay bekliyor.');
+    note(tx('Satın alma onay bekliyor.', 'Purchase is waiting for approval.'));
   } else {
     Sound.deny();
-    note((res && res.error) ? String(res.error) : 'Satın alma tamamlanamadı.');
+    note((res && res.error && !EN) ? String(res.error) : tx('Satın alma tamamlanamadı.', 'The purchase could not be completed.'));
   }
   if (shopOpen && shopTab === 'packs') renderShop();
 };
@@ -796,6 +804,30 @@ const LEGAL_DOCS = {
       <p>Aşağıdaki <strong>Apple Standart EULA</strong> bağlantısından sözleşmenin tam metnine her zaman ulaşabilirsin.</p>`
   }
 };
+if (EN) {
+  LEGAL_DOCS.privacy = {
+    title: 'Privacy Policy',
+    html: `<h3>1. Data Collected and Local Storage</h3>
+      <p><strong>Süzülüş</strong> needs no account or sign-up. Your game progress, the golden feathers you earn, the wings you unlock and your sound preferences are stored only on your own device (local storage).</p>
+      <h3>2. Rewarded Ads (Google AdMob)</h3>
+      <p>The app uses the Google AdMob SDK for optional rewarded video ads. If you give permission through Apple App Tracking Transparency (ATT), the ad network may process your device advertising identifier (IDFA) to measure ad performance and show ads that match your interests. If you do not give permission, only non-personalised ads are shown.</p>
+      <h3>3. In-App Purchases</h3>
+      <p>Golden Feather packs are processed entirely through Apple’s App Store payment system (StoreKit). We never see or store your payment or card details.</p>
+      <h3>4. Contact and Data Deletion</h3>
+      <p>When you remove the app from your device, your local game data is deleted. For privacy requests, use the developer support link on the App Store page.</p>`
+  };
+  LEGAL_DOCS.terms = {
+    title: 'Terms of Use (EULA)',
+    html: `<h3>1. License and Use</h3>
+      <p><strong>Süzülüş</strong> is covered by Apple’s Standard Licensed Application End User License Agreement (Standard EULA). The app is provided for personal, non-commercial entertainment.</p>
+      <h3>2. Golden Feather Packs (Consumable Purchases)</h3>
+      <p>The Golden Feather packs in the Shop (300, 750, 1,800 and 5,000 Golden Feathers) are consumable digital content; payment is charged to your Apple Account when you confirm the purchase.</p>
+      <h3>3. Refunds and Restoring</h3>
+      <p>Unfinished or pending transactions are synced through Apple StoreKit with the <strong>Restore Purchases</strong> button. Refund requests for consumable packs are subject to Apple App Store refund policies.</p>
+      <h3>4. Official Apple Agreement</h3>
+      <p>You can always read the full agreement through the <strong>Apple Standard EULA</strong> link below.</p>`
+  };
+}
 function openExternalURL(url) {
   const iapBridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.iap;
   if (iapBridge) {
@@ -815,17 +847,17 @@ function restorePurchases() {
   if (iapBusy) return;
   const iapBridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.iap;
   if (!iapBridge) {
-    note('Satın alma geri yükleme yalnızca iOS App Store uygulamasında çalışır.');
+    note(tx('Satın alma geri yükleme yalnızca iOS App Store uygulamasında çalışır.', 'Restoring purchases only works in the iOS App Store app.'));
     return;
   }
   iapBusy = true;
-  note('App Store işlemleri kontrol ediliyor…');
+  note(tx('App Store işlemleri kontrol ediliyor…', 'Checking App Store transactions…'));
   if (shopOpen && shopTab === 'packs') renderShop();
   try {
     iapBridge.postMessage({ action: 'restore' });
   } catch (e) {
     iapBusy = false;
-    note('Geri yükleme başlatılamadı.');
+    note(tx('Geri yükleme başlatılamadı.', 'The restore could not be started.'));
     if (shopOpen && shopTab === 'packs') renderShop();
   }
 }
@@ -834,13 +866,13 @@ window.onNativeRestoreResult = (res) => {
   if (res && res.ok) {
     if (res.restored > 0) {
       Sound.orb();
-      note(`${res.restored} bekleyen işlem geri yüklendi.`);
+      note(tx(`${res.restored} bekleyen işlem geri yüklendi.`, `${res.restored} pending transaction(s) restored.`));
     } else {
-      note('Geri yüklenecek bekleyen işlem bulunamadı (tüketilebilir paketler cihazda saklanır).');
+      note(tx('Geri yüklenecek bekleyen işlem bulunamadı (tüketilebilir paketler cihazda saklanır).', 'No pending transactions to restore (consumable packs are kept on this device).'));
     }
   } else {
     Sound.deny();
-    note((res && res.error) ? String(res.error) : 'App Store senkronizasyonu tamamlanamadı.');
+    note((res && res.error && !EN) ? String(res.error) : tx('App Store senkronizasyonu tamamlanamadı.', 'App Store sync could not be completed.'));
   }
   if (shopOpen && shopTab === 'packs') renderShop();
 };
@@ -875,13 +907,13 @@ el.btnPause.addEventListener('click', () => { if (state === 'play') pauseGame();
 function syncMute() {
   el.btnMute.classList.toggle('muted', Sound.muted);
   const b = $('btnMuteAll');
-  b.textContent = Sound.muted ? 'Kapalı' : 'Açık';
+  b.textContent = Sound.muted ? tx('Kapalı', 'Off') : tx('Açık', 'On');
   b.setAttribute('aria-pressed', String(!Sound.muted));
 }
 function syncGhostToggle() {
   const b = $('btnGhostToggle');
   if (!b) return;
-  b.textContent = save.ghostOn ? 'Açık' : 'Kapalı';
+  b.textContent = save.ghostOn ? tx('Açık', 'On') : tx('Kapalı', 'Off');
   b.setAttribute('aria-pressed', String(save.ghostOn));
 }
 el.btnMute.addEventListener('click', () => { Sound.init(); Sound.toggleMute(); syncMute(); el.btnMute.blur(); });
@@ -908,6 +940,14 @@ for (const [id, kind] of [['volMusic', 'music'], ['volSfx', 'sfx']]) {
 }
 syncMute();
 syncGhostToggle();
+// language: the two buttons in the settings; switching reloads the page in the new language
+for (const [id, l] of [['btnLangTr', 'tr'], ['btnLangEn', 'en']]) {
+  const b = $(id);
+  if (!b) continue;
+  b.setAttribute('aria-pressed', String(LANG === l));
+  b.classList.toggle('solid', LANG === l);
+  b.addEventListener('click', () => setLang(l));
+}
 window.addEventListener('resize', resize);
 
 /* ---- button layout: the skill column and the flight pad can be dragged and resized ---- */
@@ -998,20 +1038,22 @@ let lastAdCloseMs = 0;
 function renderOverEarned() {
   const shown = doubleUsed ? lastEarned * 2 : lastEarned;
   const bonus = doubleUsed ? ' <b>(2× Video!)</b>' : '';
-  el.earned.innerHTML = `Kesene <b>+${fmt(shown)} tüy</b> eklendi${bonus}${missionsDone ? ` (${missionsDone} görevden +${missionFeathers})` : ''} · toplam <b>${fmt(save.purse)}</b>${lastRaceHTML}`;
+  el.earned.innerHTML = EN
+    ? `<b>+${fmt(shown)} feathers</b> added to your purse${bonus}${missionsDone ? ` (+${missionFeathers} from ${missionsDone} mission${missionsDone > 1 ? 's' : ''})` : ''} · total <b>${fmt(save.purse)}</b>${lastRaceHTML}`
+    : `Kesene <b>+${fmt(shown)} tüy</b> eklendi${bonus}${missionsDone ? ` (${missionsDone} görevden +${missionFeathers})` : ''} · toplam <b>${fmt(save.purse)}</b>${lastRaceHTML}`;
 }
 function updateOverAdBtns() {
   el.btnRevive.hidden = reviveUsed || doubleUsed;
   el.btnDouble.hidden = doubleUsed || lastEarned <= 0;
-  el.btnDouble.textContent = `🎬 İzle · 2× Tüy (+${fmt(lastEarned)})`;
+  el.btnDouble.textContent = tx(`🎬 İzle · 2× Tüy (+${fmt(lastEarned)})`, `🎬 Watch · 2× Feathers (+${fmt(lastEarned)})`);
   el.overAds.hidden = el.btnRevive.hidden && el.btnDouble.hidden;
 }
 function updateShopAdBtn() {
   const left = shopAdsLeft();
   el.btnShopAd.disabled = left <= 0;
   el.btnShopAd.textContent = left > 0
-    ? `🎬 Video · +${AD_SHOP_REWARD} tüy (${left}/${AD_DAILY_MAX})`
-    : `🎬 Günlük video bitti (0/${AD_DAILY_MAX})`;
+    ? tx(`🎬 Video · +${AD_SHOP_REWARD} tüy (${left}/${AD_DAILY_MAX})`, `🎬 Video · +${AD_SHOP_REWARD} feathers (${left}/${AD_DAILY_MAX})`)
+    : tx(`🎬 Günlük video bitti (0/${AD_DAILY_MAX})`, `🎬 No videos left today (0/${AD_DAILY_MAX})`);
 }
 function drawAdScene(c, p, kind) {
   const w = c.canvas.width, h = c.canvas.height;
@@ -1053,7 +1095,7 @@ function drawAdScene(c, p, kind) {
   c.restore();
   // floating reward emblem
   c.fillStyle = '#ffd257'; c.font = '800 18px system-ui, sans-serif'; c.textAlign = 'center';
-  const label = kind === 'revive' ? 'KALKANLI DEVAM' : kind === 'double' ? '2× ALTIN TÜY' : `+${AD_SHOP_REWARD} ALTIN TÜY`;
+  const label = kind === 'revive' ? tx('KALKANLI DEVAM', 'CONTINUE WITH SHIELD') : kind === 'double' ? tx('2× ALTIN TÜY', '2× GOLDEN FEATHERS') : `+${AD_SHOP_REWARD} ${tx('ALTIN TÜY', 'GOLDEN FEATHERS')}`;
   c.fillText(label, w / 2, h - 22);
 }
 function finishActiveAd(granted) {
@@ -1070,10 +1112,10 @@ function playRewardedAd(kind, titleText, descText, onReward) {
   Sound.suspend();
   el.adTitle.textContent = titleText;
   el.adDesc.textContent = descText;
-  el.adCaption.textContent = kind === 'revive' ? 'Ödül: Kaldığın yerden devam' : kind === 'double' ? 'Ödül: 2× Uçuş Tüyleri' : `Ödül: +${AD_SHOP_REWARD} Altın Tüy`;
+  el.adCaption.textContent = kind === 'revive' ? tx('Ödül: Kaldığın yerden devam', 'Reward: continue where you left off') : kind === 'double' ? tx('Ödül: 2× Uçuş Tüyleri', 'Reward: 2× flight feathers') : tx(`Ödül: +${AD_SHOP_REWARD} Altın Tüy`, `Reward: +${AD_SHOP_REWARD} Golden Feathers`);
   el.adFill.style.width = '0%';
   const hasNativeAds = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ads);
-  el.adTimer.textContent = hasNativeAds ? 'Yükleniyor...' : '5 sn';
+  el.adTimer.textContent = hasNativeAds ? tx('Yükleniyor...', 'Loading...') : tx('5 sn', '5 s');
   el.adDialog.showModal();
   const dur = 5000;
   let t0 = performance.now();
@@ -1090,7 +1132,7 @@ function playRewardedAd(kind, titleText, descText, onReward) {
     const p = clamp(elapsed / dur, 0, 1);
     const rem = Math.max(0, Math.ceil((dur - elapsed) / 1000));
     el.adFill.style.width = `${Math.round(p * 100)}%`;
-    el.adTimer.textContent = rem > 0 ? `${rem} sn` : 'Ödül!';
+    el.adTimer.textContent = rem > 0 ? `${rem} ${tx('sn', 's')}` : tx('Ödül!', 'Reward!');
     if (ctx2d) drawAdScene(ctx2d, p, kind);
     if (p >= 1) {
       activeAd.done = true;
@@ -1113,7 +1155,7 @@ function playRewardedAd(kind, titleText, descText, onReward) {
 window.onNativeAdPresented = () => {
   if (!activeAd) return;
   activeAd.nativePresented = true;
-  el.adTimer.textContent = 'Oynatılıyor';
+  el.adTimer.textContent = tx('Oynatılıyor', 'Playing');
 };
 window.onNativeAdClosed = (rewarded) => {
   if (!activeAd) return;
@@ -1130,8 +1172,8 @@ window.onNativeAdUnavailable = () => {
   const kind = activeAd.kind;
   finishActiveAd(false);
   Sound.deny();
-  if (kind === 'shop50') note('Şu an reklam yüklenemedi, lütfen internet bağlantını kontrol edip tekrar dene.');
-  else el.tip.textContent = 'Şu an reklam yüklenemedi, birazdan tekrar dene.';
+  if (kind === 'shop50') note(tx('Şu an reklam yüklenemedi, lütfen internet bağlantını kontrol edip tekrar dene.', 'The ad could not be loaded right now. Please check your internet connection and try again.'));
+  else el.tip.textContent = tx('Şu an reklam yüklenemedi, birazdan tekrar dene.', 'The ad could not be loaded right now. Try again in a moment.');
 };
 window.onNativeAdRewarded = () => finishActiveAd(true);
 el.adDialog.addEventListener('cancel', (e) => {
@@ -1148,7 +1190,7 @@ el.adDialog.addEventListener('close', () => {
 el.btnAdClose.addEventListener('click', () => finishActiveAd(false));
 function reviveFlight() {
   if (state !== 'over' || reviveUsed || doubleUsed) return;
-  playRewardedAd('revive', 'İzle ve Devam Et', 'Video bitince düştüğün yerden koruma kalkanıyla uçuşa devam edersin.', () => {
+  playRewardedAd('revive', tx('İzle ve Devam Et', 'Watch and Continue'), tx('Video bitince düştüğün yerden koruma kalkanıyla uçuşa devam edersin.', 'When the video ends you continue your flight from where you fell, with a protective shield.'), () => {
     reviveUsed = true;
     el.over.hidden = true;
     el.hud.hidden = false; el.btnPause.hidden = false; el.hudBestWrap.hidden = false; el.btnMute.hidden = MOBILE;
@@ -1175,7 +1217,7 @@ function reviveFlight() {
 }
 function doubleFeathers() {
   if (state !== 'over' || doubleUsed || lastEarned <= 0) return;
-  playRewardedAd('double', '2× Altın Tüy Ödülü', 'Video bitince bu uçuşta kazandığın altın tüyler ikiye katlanır!', () => {
+  playRewardedAd('double', tx('2× Altın Tüy Ödülü', '2× Golden Feather Reward'), tx('Video bitince bu uçuşta kazandığın altın tüyler ikiye katlanır!', 'When the video ends, the golden feathers from this flight are doubled!'), () => {
     doubleUsed = true;
     save.purse += lastEarned;
     paidEarned += lastEarned;
@@ -1189,11 +1231,11 @@ function doubleFeathers() {
 }
 function watchShopAd() {
   if (shopAdsLeft() <= 0) {
-    note('Bugünlük 2 video hakkını kullandın, yarın yenilenir!');
+    note(tx('Bugünlük 2 video hakkını kullandın, yarın yenilenir!', 'You have used both videos for today. They refresh tomorrow!'));
     Sound.deny();
     return;
   }
-  playRewardedAd('shop50', `Mağaza Video Ödülü (+${AD_SHOP_REWARD} Tüy)`, `Video bitince kesene anında +${AD_SHOP_REWARD} altın tüy eklenecek.`, () => {
+  playRewardedAd('shop50', tx(`Mağaza Video Ödülü (+${AD_SHOP_REWARD} Tüy)`, `Shop Video Reward (+${AD_SHOP_REWARD} Feathers)`), tx(`Video bitince kesene anında +${AD_SHOP_REWARD} altın tüy eklenecek.`, `When the video ends, +${AD_SHOP_REWARD} golden feathers go straight into your purse.`), () => {
     syncAdDay();
     save.adCount++;
     save.purse += AD_SHOP_REWARD;
@@ -1202,7 +1244,7 @@ function watchShopAd() {
     updateShopAdBtn();
     renderShop();
     Sound.orb();
-    note(`Video ödülü: +${AD_SHOP_REWARD} altın tüy kesene eklendi!`);
+    note(tx(`Video ödülü: +${AD_SHOP_REWARD} altın tüy kesene eklendi!`, `Video reward: +${AD_SHOP_REWARD} golden feathers added to your purse!`));
   });
 }
 el.btnRevive.addEventListener('click', reviveFlight);

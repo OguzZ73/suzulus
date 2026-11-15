@@ -507,7 +507,7 @@ html, body { overscroll-behavior: none; }
   .shop-main { gap: 8px; }
   .tab { padding: 8px 13px; font-size: 12px; }
   .grid, .ups, .packs { max-height: none; flex: 1 1 auto; align-content: start; }
-  .packs { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .packs { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
   .pack-card { padding: 10px 8px; gap: 5px; border-radius: 12px; }
   .pack-card > svg { width: 28px; height: 28px; }
   .pack-card > header h3 { font-size: 13.5px; }
@@ -829,3 +829,25 @@ dialog::backdrop {
   @starting-style { #menu:not([hidden]) { translate: none; } }
   .intro-wind path, .intro-feathers > i, .intro-glider, .intro-title, .intro-sub, #menu .hero > * { animation: none; }
 }
+
+/* the tab row keeps its height; the grid below scrolls instead of squeezing it */
+.shop-main > .tabs { flex-shrink: 0; }
+
+/* the premium line in the workshop: a gold frame, a slow sheen across the card and an "Özel" tag */
+.item.premium { position: relative; border-color: rgba(255, 210, 122, 0.55); background: linear-gradient(160deg, rgba(255, 210, 122, 0.14), rgba(160, 112, 255, 0.08) 55%, rgba(255, 255, 255, 0.03)); }
+/* the sheen slides as a background, so nothing spills outside the card and the grid keeps its row heights */
+.item.premium::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.17) 50%, transparent 60%) no-repeat;
+  background-size: 300% 100%; background-position: 150% 0; animation: premium-sheen 4.5s ease-in-out infinite;
+}
+@keyframes premium-sheen { 0%, 55% { background-position: 150% 0; } 100% { background-position: -50% 0; } }
+.item.premium .sw { box-shadow: inset 0 0 0 1px rgba(255, 210, 122, 0.35); }
+.item.premium.locked .sw { opacity: 0.85; }
+.item.premium .nm { color: #ffe3a6; }
+.item .tag {
+  position: absolute; top: 7px; right: 7px; padding: 3px 6px 2px; border-radius: 99px;
+  background: linear-gradient(180deg, #ffe08a, #f2b03c); color: #2a1a05; font: 800 9px/1 var(--f-body); letter-spacing: 0.08em; text-transform: uppercase;
+}
+.is-mobile .item .tag { top: 5px; right: 5px; font-size: 8px; }
+@media (prefers-reduced-motion: reduce) { .item.premium::after { animation: none; } }

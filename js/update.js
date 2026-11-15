@@ -5,12 +5,12 @@
    Update
    ========================================================= */
 function phaseName(t) {
-  if (t < 0.07 || t >= 0.95) return 'Şafak';
-  if (t < 0.22) return 'Sabah';
-  if (t < 0.42) return 'Öğle';
-  if (t < 0.6) return 'Gün batımı';
-  if (t < 0.72) return 'Alacakaranlık';
-  return 'Gece';
+  if (t < 0.07 || t >= 0.95) return tx('Şafak', 'Dawn');
+  if (t < 0.22) return tx('Sabah', 'Morning');
+  if (t < 0.42) return tx('Öğle', 'Noon');
+  if (t < 0.6) return tx('Gün batımı', 'Sunset');
+  if (t < 0.72) return tx('Alacakaranlık', 'Dusk');
+  return tx('Gece', 'Night');
 }
 function showLabel() {
   const w = WNAMES[weather.type];
@@ -23,7 +23,9 @@ const PORTAL_GAP = 12000, PORTAL_RY = 96, PORTAL_RX = 50;
 const biome = { target: 'lakes', idx: 0, n: 1, portal: null };
 // the 1900s city is out of the rotation for now; its drawing code is kept so it can come back redesigned
 const BIOMES = ['lakes', 'canyon', 'polar', 'volcano'];
-const BIOME_NAMES = { lakes: 'Göller diyarı', city: '1900’ler Eski Şehir', canyon: 'Kızıl Kanyon', polar: 'Kutup', volcano: 'Ateş Vadisi' };
+const BIOME_NAMES = EN
+  ? { lakes: 'Land of Lakes', city: 'Old Town of the 1900s', canyon: 'Red Canyon', polar: 'The Pole', volcano: 'Fire Valley' }
+  : { lakes: 'Göller diyarı', city: '1900’ler Eski Şehir', canyon: 'Kızıl Kanyon', polar: 'Kutup', volcano: 'Ateş Vadisi' };
 // every flight starts over the lakes; the countries after that come in a different order each time
 function shuffleBiomes() {
   const rest = BIOMES.filter((b) => b !== 'lakes');
@@ -69,7 +71,7 @@ function updateBiome(dt) {
     if (POLAR) { coverTarget = Math.min(coverTarget, 0.2); coverT = rand(30, 60); }
     if (through) {
       const pts = watching ? 0 : 300 * mult(); addScore(pts);
-      popup(watching ? `Yeni diyar: ${BIOME_NAMES[want]}` : `Yeni diyar: ${BIOME_NAMES[want]}  +${pts}`, '#ffffff', true);
+      popup(watching ? `${tx('Yeni diyar', 'New land')}: ${BIOME_NAMES[want]}` : `${tx('Yeni diyar', 'New land')}: ${BIOME_NAMES[want]}  +${pts}`, '#ffffff', true);
       el.phase.textContent = BIOME_NAMES[want];
       el.phase.classList.add('show');
       phaseShowT = 4.5;
@@ -211,7 +213,7 @@ function stepBird(h) {
       const pts = 40 * mult();
       addScore(pts);
       thermalCount++; quest('thermal');
-      popup(`Hava akımı  +${pts}`, '#ffe6b0');
+      popup(tx(`Hava akımı  +${pts}`, `Air current  +${pts}`), '#ffe6b0');
       Sound.thermal();
     }
   }
@@ -269,7 +271,7 @@ function collide() {
     if (d < BIRD_R) {
       o.touched = true;
       if (bird.inv > 0) continue;
-      if (sk.dash.t > 0 && perk('dash2a') && SMASHABLE.includes(o.type)) { smash(o); buzz(20); shake = Math.max(shake, RM ? 0 : 4); addScore(50 * mult()); popup('Parçalandı  +' + 50 * mult(), '#ffd27a'); continue; }
+      if (sk.dash.t > 0 && perk('dash2a') && SMASHABLE.includes(o.type)) { smash(o); buzz(20); shake = Math.max(shake, RM ? 0 : 4); addScore(50 * mult()); popup(tx('Parçalandı  +', 'Smashed  +') + 50 * mult(), '#ffd27a'); continue; }
       if (shieldOn() || useLastChance()) { breakShield(o, !shieldOn()); continue; }
       die();
       return;
@@ -320,7 +322,7 @@ function updatePlay(gdt, dt) {
   }
   if (!watching && !bestAnnounced && bestAtStart > 0 && score > bestAtStart) {
     bestAnnounced = true;
-    popup('Yeni rekor', '#ffd27a', true);
+    popup(tx('Yeni rekor', 'New record'), '#ffd27a', true);
     Sound.record();
   }
   if (!watching && runT > 0.45) spawnAhead();

@@ -151,7 +151,7 @@ function drawGhost() {
   ctx.font = '600 10px "Josefin Sans", "Avenir Next", sans-serif';
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillStyle = '#d6f6ff';
-  ctx.fillText('E N  İ Y İ', 0, -44);
+  ctx.fillText(tx('E N  İ Y İ', 'B E S T'), 0, -44);
   ctx.rotate(g.ang);
   ctx.globalAlpha = 0.36 * g.a;
   ctx.drawImage(birdC, -BOX / 2, -BOX / 2, BOX, BOX);
@@ -172,7 +172,7 @@ function drawGhostMarker() {
   ctx.closePath(); ctx.fill();
   ctx.font = '600 12px "Josefin Sans", "Avenir Next", sans-serif';
   ctx.textAlign = ahead ? 'right' : 'left'; ctx.textBaseline = 'middle';
-  ctx.fillText(`Hayalet ${ahead ? '+' : '−'}${m} m`, ahead ? x - 15 : x + 15, y + 1);
+  ctx.fillText(`${tx('Hayalet', 'Ghost')} ${ahead ? '+' : '−'}${m} m`, ahead ? x - 15 : x + 15, y + 1);
   ctx.globalAlpha = 1;
 }
 // thin threads of wind drifting through the air the glider flies in

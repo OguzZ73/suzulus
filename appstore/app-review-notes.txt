@@ -1,0 +1,30 @@
+1. SCREEN RECORDING
+Recorded on a physical iPhone running the latest iOS. It starts at app launch and shows: the consent (UMP) dialog, a full flight, the game-over screen, the Shop, a rewarded video ad, a purchase of a Golden Feathers pack (Sandbox) and Restore Purchases.
+Video: <VIDEO LINK HERE>
+The app has no account registration, no login and no user-generated content.
+
+2. PURPOSE AND TARGET AUDIENCE
+Süzülüş ("Gliding") is a relaxing, single-player casual arcade game. The player steers a paper glider through changing skies and landscapes, avoids obstacles, rides air currents and collects feathers. It is aimed at casual players aged 9+ who want short, calm play sessions with atmospheric visuals and music. It works fully offline and needs no account.
+
+3. HOW TO USE / ACCESS FEATURES
+- No login or demo account is needed. Open the app and start a flight from the main menu.
+- Use the two flight buttons on the right side of the screen: hold the upper one to climb, the lower one to dive; with neither held the glider sinks gently. Avoid obstacles; collect feathers.
+- After a flight, collected feathers can be spent in the Workshop / Skill Tree and the Shop (wings, pilots, upgrades).
+- Shop > Golden Feathers: 4 consumable In-App Purchases:
+  com.suzulus.oyun.feathers300, com.suzulus.oyun.feathers750, com.suzulus.oyun.feathers1800, com.suzulus.oyun.feathers5000
+  Golden Feathers are an in-game currency only; all content can also be earned by playing. A "Restore Purchases" button is in the Shop.
+- Optional rewarded video ads (never forced): continue a flight once after crashing, double the feathers of a flight, or get a small amount of Golden Feathers in the Shop.
+- Watch mode (main menu) shows a relaxing autopilot flight through empty skies, with no score.
+
+4. EXTERNAL SERVICES
+- Apple StoreKit 2: In-App Purchases.
+- Google AdMob (Google Mobile Ads SDK): optional rewarded video ads.
+- Google User Messaging Platform (UMP): ad consent (GDPR) dialog; App Tracking Transparency prompt is shown before any personalised ads.
+- Google Fonts: two web fonts for the UI text (falls back to system fonts offline).
+No other backend, analytics, authentication or AI services are used. Game progress is stored only on the device.
+
+5. REGIONAL DIFFERENCES
+The app works the same in all regions. The only difference is the legally required ad consent (UMP) dialog, which Google shows only in regions where it is required (e.g. EEA/UK). The game is available in English and Turkish: it follows the device language (Turkish devices get Turkish, all others English) and can be switched any time in Settings > Language.
+
+6. REGULATED INDUSTRY / THIRD-PARTY MATERIAL
+Not a regulated industry. All art, code and music are original, except a rain sound loop ("rain loopable" by Ylmir, OpenGameArt.org, CC0 public domain) and the Google Fonts Josefin Sans and Mulish (SIL Open Font License).

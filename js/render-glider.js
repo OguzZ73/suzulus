@@ -62,6 +62,34 @@ function sailHalf(c, isNear, flut) {
       c.lineTo(fx, fy);
       c.lineTo(nx, ny);
     }
+  } else if (sid === 'ejder') {
+    // Ejder / Dragon wing: an arm bone out to a clawed wrist, then membrane scalloped between the finger bones
+    const [W, T] = ejderPts(isNear);
+    c.moveTo(N[0] + 3, N[1] - 0.6);
+    c.quadraticCurveTo((N[0] + W[0]) / 2 + ox * 2, (N[1] + W[1]) / 2 + oy * 3, W[0], W[1]);
+    c.quadraticCurveTo((W[0] + T[0]) / 2 + ox * 2, (W[1] + T[1]) / 2 + oy * 4.5, T[0], T[1]);
+    for (let i = 1; i <= 4; i++) {
+      const ax = lerp(T[0], K[0] - 3, (i - 1) / 4), ay = lerp(T[1], K[1], (i - 1) / 4), bx = lerp(T[0], K[0] - 3, i / 4), by = lerp(T[1], K[1], i / 4);
+      c.quadraticCurveTo((ax + bx) / 2 + 8, (ay + by) / 2 - oy * 2.5 + flut * 0.8, bx, by);
+    }
+  } else if (sid === 'aurora') {
+    // Aurora: a long swept blade of night sky with three soft trailing lobes
+    const T = auroraTip(isNear);
+    c.moveTo(N[0] + 3, N[1] - 0.8);
+    c.bezierCurveTo(N[0] - 16 + ox * 7, N[1] + (T[1] - N[1]) * 0.25 + oy * 8, T[0] + 20 + ox * 3, T[1] - oy * 2, T[0], T[1]);
+    for (let i = 1; i <= 3; i++) {
+      const ax = lerp(T[0], K[0] - 2, (i - 1) / 3), ay = lerp(T[1], K[1], (i - 1) / 3), bx = lerp(T[0], K[0] - 2, i / 3), by = lerp(T[1], K[1], i / 3);
+      c.quadraticCurveTo((ax + bx) / 2 - 5, (ay + by) / 2 + oy * 3 + flut * (1.4 - i * 0.3), bx, by);
+    }
+  } else if (sid === 'vitray') {
+    // Vitray / Butterfly: a full rounded forewing with a finely scalloped hem
+    const T = vitrayTip(isNear);
+    c.moveTo(N[0] + 2, N[1] - 0.5);
+    c.bezierCurveTo(N[0] - 10 + ox * 9, N[1] + oy * 13, T[0] + 14 + ox * 5, T[1] + oy * 5, T[0], T[1]);
+    for (let i = 1; i <= 5; i++) {
+      const ax = lerp(T[0], K[0] - 1, (i - 1) / 5), ay = lerp(T[1], K[1], (i - 1) / 5), bx = lerp(T[0], K[0] - 1, i / 5), by = lerp(T[1], K[1], i / 5);
+      c.quadraticCurveTo((ax + bx) / 2 - 3.2, (ay + by) / 2 + oy * 2.6 + flut * 0.5, bx, by);
+    }
   } else {
     // Klasik Delta
     c.moveTo(N[0], N[1]);
@@ -69,6 +97,17 @@ function sailHalf(c, isNear, flut) {
     c.quadraticCurveTo((tip[0] + K[0]) / 2 + 5, (tip[1] + K[1]) / 2 + flut, K[0], K[1]);
   }
   c.closePath();
+}
+// shape points of the premium wings, shared by their outline, their inside and their frame
+const ejderPts = (isNear) => (isNear ? [[4, -10], [-53, 0.5]] : [[12, -43], [-32, -51.5]]);
+const auroraTip = (isNear) => (isNear ? [-54, 2] : [-33, -52]);
+const vitrayTip = (isNear) => (isNear ? [-49, -0.5] : [-28, -50]);
+const JEWEL = ['#ff5d6c', '#ffb23e', '#ffe45c', '#3fd6a0', '#3fa9f5', '#a070ff'];
+function star4(c, x, y, r) {
+  c.beginPath();
+  c.moveTo(x, y - r); c.lineTo(x + r * 0.28, y - r * 0.28); c.lineTo(x + r, y); c.lineTo(x + r * 0.28, y + r * 0.28);
+  c.lineTo(x, y + r); c.lineTo(x - r * 0.28, y + r * 0.28); c.lineTo(x - r, y); c.lineTo(x - r * 0.28, y - r * 0.28);
+  c.closePath(); c.fill();
 }
 // bands of colour running along a leading edge (drawn inside the current clip)
 function sailStripes(c, tip, bands) {
@@ -187,6 +226,87 @@ function drawWingInner(c, isNear, cols) {
     c.globalAlpha = 1;
     sailStripes(c, tip, [[1.8, 3.4, cols[0]], [5.2, 2.2, cols[2]]]);
     battens(c, tip, 6, 'rgba(138,90,26,0.45)');
+  } else if (sid === 'ejder') {
+    const [W, T] = ejderPts(isNear);
+    const pulse = 0.55 + 0.45 * Math.sin(gtime * 3.2 + (isNear ? 0 : 1.2));
+    // the membrane darkens toward its hem
+    c.fillStyle = 'rgba(20,4,8,0.38)';
+    c.beginPath(); c.moveTo(T[0], T[1]); c.lineTo(K[0] - 3, K[1]); c.lineTo(lerp(W[0], K[0], 0.45), lerp(W[1], K[1], 0.45)); c.closePath(); c.fill();
+    // finger bones, lit from inside: a wide soft glow under a thin hot core, breathing slowly
+    const bones = () => {
+      c.beginPath();
+      for (let i = 1; i <= 4; i++) {
+        const fx = lerp(T[0], K[0] - 3, i / 4), fy = lerp(T[1], K[1], i / 4);
+        c.moveTo(W[0], W[1]); c.quadraticCurveTo((W[0] + fx) / 2 + 3, (W[1] + fy) / 2 + oy * 2, fx, fy);
+      }
+    };
+    c.strokeStyle = cols[0]; c.lineWidth = 5; c.globalAlpha = 0.14 + 0.2 * pulse; bones(); c.stroke();
+    c.strokeStyle = cols[1]; c.lineWidth = 2; c.globalAlpha = 1; bones(); c.stroke();
+    c.strokeStyle = cols[0]; c.lineWidth = 0.7; c.globalAlpha = 0.35 + 0.65 * pulse; bones(); c.stroke();
+    // every other fold of the membrane catches a little more light
+    c.fillStyle = 'rgba(255,170,110,0.10)'; c.globalAlpha = 1;
+    for (let i = 1; i <= 4; i += 2) {
+      const ax = lerp(T[0], K[0] - 3, (i - 1) / 4), ay = lerp(T[1], K[1], (i - 1) / 4), bx = lerp(T[0], K[0] - 3, i / 4), by = lerp(T[1], K[1], i / 4);
+      c.beginPath(); c.moveTo(W[0], W[1]); c.lineTo(ax, ay); c.lineTo(bx, by); c.closePath(); c.fill();
+    }
+    c.globalAlpha = 1;
+  } else if (sid === 'aurora') {
+    const T = auroraTip(isNear);
+    // curtains of northern light sliding along the wing, each slowly changing colour
+    for (let i = 0; i < 5; i++) {
+      // teal through blue and violet to rose, never the dull greens in between
+      const hue = (205 + 68 * Math.sin(gtime * 0.7 + i * 1.1 + (isNear ? 0 : 0.8)) + i * 11) | 0, lit = isNear ? 68 : 60;
+      const a = 0.55 + 0.3 * Math.sin(gtime * 1.6 + i * 1.7), o = 1.5 + i * 3.7 + Math.sin(gtime * 1.1 + i) * 0.9;
+      // a wide soft band under a narrow bright one, so each curtain has a glowing heart
+      sailStripes(c, T, [[o, 5.6, `hsla(${hue},95%,${lit}%,${(a * 0.45).toFixed(3)})`], [o, 2.3, `hsla(${hue},100%,${lit + 10}%,${a.toFixed(3)})`]]);
+    }
+    battens(c, T, 7, 'rgba(255,255,255,0.2)');
+    // stars that wink through the light
+    c.fillStyle = '#ffffff';
+    for (let j = 0; j < 6; j++) {
+      const u = 0.18 + 0.13 * j, v = 0.22 + 0.16 * (j % 3);
+      const sx = lerp(lerp(N[0], T[0], u), K[0], v), sy = lerp(lerp(N[1], T[1], u), K[1], v);
+      c.globalAlpha = Math.pow(Math.max(0, Math.sin(gtime * 2.4 + j * 2.1)), 3);
+      star4(c, sx, sy, 1.9);
+    }
+    c.globalAlpha = 1;
+  } else if (sid === 'vitray') {
+    const T = vitrayTip(isNear), R = [N[0] - 5, N[1]];
+    // a fan of glass: seven points round the hem, each sector split into an inner and an outer pane
+    const ring = [[(N[0] + T[0]) / 2 + ox * 7, (N[1] + T[1]) / 2 + oy * 11]];
+    for (let i = 0; i <= 5; i++) ring.push([lerp(T[0], K[0] - 1, i / 5), lerp(T[1], K[1], i / 5)]);
+    // three rows of panes; the rows sit a little higher in every other sector, the way a glazier staggers them
+    const cut = (s2, k) => { const f = k + (s2 % 2 ? 0.07 : 0); return [lerp(R[0], ring[s2][0], f), lerp(R[1], ring[s2][1], f)]; };
+    const off = isNear ? 0 : 3, dim = isNear ? 1 : 0.8, rows = [0, 0.34, 0.66, 1];
+    for (let s2 = 0; s2 < 6; s2++) {
+      for (let r = 0; r < 3; r++) {
+        const a0 = r ? cut(s2, rows[r]) : R, b0 = r ? cut(s2 + 1, rows[r]) : R;
+        const a1 = r < 2 ? cut(s2, rows[r + 1]) : ring[s2], b1 = r < 2 ? cut(s2 + 1, rows[r + 1]) : ring[s2 + 1];
+        // each pane brightens and dims on its own as the light moves behind it
+        c.globalAlpha = dim * (0.8 + 0.2 * Math.sin(gtime * 2.1 + s2 * 1.3 + r * 2.2 + off));
+        c.fillStyle = JEWEL[(s2 * 2 + r * 3 + off) % 6];
+        c.beginPath(); c.moveTo(a0[0], a0[1]); c.lineTo(a1[0], a1[1]); c.lineTo(b1[0], b1[1]); c.lineTo(b0[0], b0[1]); c.closePath(); c.fill();
+      }
+    }
+    c.globalAlpha = 1;
+    // a sheen of daylight sweeping across the glass
+    sailStripes(c, T, [[(gtime * 7) % 34 - 2, 4.5, 'rgba(255,255,255,0.18)']]);
+    // the lead between the panes
+    c.strokeStyle = cols[1]; c.lineWidth = 1.2;
+    c.beginPath();
+    for (let s2 = 0; s2 < 7; s2++) { c.moveTo(R[0], R[1]); c.lineTo(ring[s2][0], ring[s2][1]); }
+    for (let s2 = 0; s2 < 6; s2++) for (let r = 1; r < 3; r++) { const a = cut(s2, rows[r]), b = cut(s2 + 1, rows[r]); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); }
+    c.stroke();
+    // a dark hem set with pearls, like a monarch's wing
+    c.lineWidth = 5.5;
+    c.beginPath(); c.moveTo(ring[1][0], ring[1][1]);
+    for (let s = 2; s < 7; s++) c.quadraticCurveTo((ring[s - 1][0] + ring[s][0]) / 2 - 3.2, (ring[s - 1][1] + ring[s][1]) / 2 + oy * 2.6, ring[s][0], ring[s][1]);
+    c.stroke();
+    c.fillStyle = cols[2];
+    for (let s = 1; s < 6; s++) {
+      const px = (ring[s][0] + ring[s + 1][0]) / 2 - 1.4, py = (ring[s][1] + ring[s + 1][1]) / 2 + oy * 0.9;
+      c.beginPath(); c.arc(lerp(px, R[0], 0.02), lerp(py, R[1], 0.02), 0.8, 0, TAU); c.fill();
+    }
   } else {
     sailStripes(c, tip, isNear ? [[1.9, 3.8, cols[0]], [5.6, 3.2, cols[1]], [9, 2.2, cols[2]]] : [[1.8, 3.6, cols[0]], [5.2, 2.8, cols[1]], [8.2, 1.8, cols[2]]]);
     battens(c, tip, isNear ? 5 : 4, isNear ? 'rgba(120,96,70,0.28)' : 'rgba(70,56,44,0.25)');
@@ -264,6 +384,117 @@ function drawWingFrameAndOrnaments(c, ph) {
     c.moveTo(N[0] + 1, N[1] - 3.2); c.quadraticCurveTo(N[0] + 7, N[1] - 3.5, N[0] + 9.5, N[1] + 0.8);
     c.quadraticCurveTo(N[0] + 5, N[1] + 0.5, N[0] + 1, N[1] + 1.6); c.closePath();
     c.fill(); c.stroke();
+  } else if (sid === 'ejder') {
+    const pulse = 0.55 + 0.45 * Math.sin(gtime * 3.2), tw = flut * 1.4;
+    // dikenli kuyruk: a spined tail that ends in a glowing barb and sheds embers
+    c.strokeStyle = '#1c0a0e'; c.lineWidth = 2.6;
+    c.beginPath(); c.moveTo(K[0] - 2, K[1]); c.bezierCurveTo(K[0] - 10, K[1] - 3 + tw, K[0] - 16, K[1] + 4 - tw, K[0] - 24, K[1] + tw * 1.2); c.stroke();
+    const tx = K[0] - 24, ty = K[1] + tw * 1.2;
+    c.fillStyle = `rgba(255,138,46,${(0.7 + 0.3 * pulse).toFixed(3)})`;
+    c.beginPath(); c.moveTo(tx - 6.5, ty); c.lineTo(tx + 1, ty - 3.6); c.lineTo(tx - 0.8, ty); c.lineTo(tx + 1, ty + 3.6); c.closePath(); c.fill();
+    for (let i = 0; i < 4; i++) {
+      const u = (gtime * 0.9 + i * 0.25) % 1;
+      c.globalAlpha = (1 - u) * 0.9; c.fillStyle = i % 2 ? '#ffd98a' : '#ff8a2e';
+      c.beginPath(); c.arc(tx - 6 - u * 12, ty + Math.sin(u * 7 + i * 2) * 3 - u * 4, 1.25 * (1 - u * 0.6), 0, TAU); c.fill();
+    }
+    c.globalAlpha = 1;
+    // arm bones and keel, with a seam of fire running down each arm
+    const arms = () => {
+      c.beginPath();
+      for (const near of [false, true]) {
+        const [W, T] = ejderPts(near), ox = near ? 1 : -0.6, oy = near ? 1 : -1;
+        c.moveTo(N[0] + 3, N[1] - 0.6);
+        c.quadraticCurveTo((N[0] + W[0]) / 2 + ox * 2, (N[1] + W[1]) / 2 + oy * 3, W[0], W[1]);
+        c.quadraticCurveTo((W[0] + T[0]) / 2 + ox * 2, (W[1] + T[1]) / 2 + oy * 4.5, T[0], T[1]);
+      }
+    };
+    c.strokeStyle = '#1c0a0e'; c.lineWidth = 2.5; arms(); c.stroke();
+    c.lineWidth = 1.7; c.beginPath(); c.moveTo(N[0] + 3, N[1] - 0.6); c.lineTo(K[0] - 3, K[1]); c.stroke();
+    c.strokeStyle = `rgba(255,170,80,${(0.3 + 0.45 * pulse).toFixed(3)})`; c.lineWidth = 0.75; arms(); c.stroke();
+    // a claw on each wrist
+    c.fillStyle = '#e8dcc0'; c.strokeStyle = '#1c0a0e'; c.lineWidth = 0.6;
+    for (const near of [false, true]) {
+      const [W] = ejderPts(near), oy = near ? 1 : -1;
+      c.beginPath(); c.moveTo(W[0] - 2.2, W[1]); c.quadraticCurveTo(W[0] + 0.5, W[1] + oy * 4, W[0] + 4.5, W[1] + oy * 5.4); c.quadraticCurveTo(W[0] + 2.6, W[1] + oy * 2.2, W[0] + 2, W[1] - oy * 0.4); c.closePath(); c.fill(); c.stroke();
+    }
+    // a dragon's head at the nose: a long snout, two horns swept back over the wing, one burning eye
+    c.fillStyle = '#e8dcc0'; c.strokeStyle = '#1c0a0e'; c.lineWidth = 0.6;
+    c.beginPath(); c.moveTo(N[0] + 1.5, N[1] - 3); c.quadraticCurveTo(N[0] - 4, N[1] - 8, N[0] - 11, N[1] - 8.6); c.quadraticCurveTo(N[0] - 5, N[1] - 5.2, N[0] - 1.5, N[1] - 1.8); c.closePath(); c.fill(); c.stroke();
+    c.beginPath(); c.moveTo(N[0] + 1.5, N[1] + 2); c.quadraticCurveTo(N[0] - 4, N[1] + 6.2, N[0] - 10, N[1] + 6.2); c.quadraticCurveTo(N[0] - 5, N[1] + 3.6, N[0] - 1.5, N[1] + 0.8); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = '#3a1016'; c.strokeStyle = '#1c0a0e'; c.lineWidth = 0.7;
+    c.beginPath();
+    c.moveTo(N[0] - 3, N[1] - 3.4); c.quadraticCurveTo(N[0] + 4, N[1] - 4.2, N[0] + 8, N[1] - 2.2); c.lineTo(N[0] + 12.5, N[1] - 0.6);
+    c.lineTo(N[0] + 11.6, N[1] + 1.2); c.lineTo(N[0] + 7, N[1] + 1.4); c.quadraticCurveTo(N[0] + 3, N[1] + 3.4, N[0] - 3, N[1] + 2.6);
+    c.closePath(); c.fill(); c.stroke();
+    // jaw line and a nostril
+    c.strokeStyle = '#1c0a0e'; c.lineWidth = 0.6;
+    c.beginPath(); c.moveTo(N[0] + 11.6, N[1] + 0.3); c.lineTo(N[0] + 5, N[1] + 0.6); c.stroke();
+    c.fillStyle = `rgba(255,154,60,${(0.18 + 0.22 * pulse).toFixed(3)})`; c.beginPath(); c.arc(N[0] + 4, N[1] - 1.4, 2.6, 0, TAU); c.fill();
+    c.fillStyle = '#ffd98a'; c.beginPath(); c.ellipse(N[0] + 4, N[1] - 1.5, 1.5, 0.8, -0.25, 0, TAU); c.fill();
+    c.fillStyle = '#1c0a0e'; c.beginPath(); c.ellipse(N[0] + 4.2, N[1] - 1.5, 0.35, 0.75, -0.25, 0, TAU); c.fill();
+  } else if (sid === 'aurora') {
+    // two ribbons of light streaming from the tail, a soft halo round a bright core
+    for (const [dy, hue, p2, len] of [[-3.2, 165, 0, 32], [3.2, 285, 1.7, 25]]) {
+      const f = Math.sin(ph * 1.7 + p2) * 3, h = (hue + 25 * Math.sin(gtime * 0.9 + p2)) | 0;
+      for (const [lw, al] of [[5.5, 0.16], [2, 0.85]]) {
+        c.strokeStyle = `hsla(${h},95%,72%,${al})`; c.lineWidth = lw;
+        c.beginPath(); c.moveTo(K[0] - 1, K[1] + dy * 0.4); c.bezierCurveTo(K[0] - len * 0.33, K[1] + dy * 1.6 + f, K[0] - len * 0.62, K[1] + dy * 0.4 - f, K[0] - len, K[1] + dy * 1.7 + f * 1.4); c.stroke();
+      }
+    }
+    // leading edges drawn in light
+    const edges = () => {
+      c.beginPath();
+      for (const near of [false, true]) {
+        const T = auroraTip(near), ox = near ? 1 : -0.6, oy = near ? 1 : -1;
+        c.moveTo(N[0] + 3, N[1] - 0.8);
+        c.bezierCurveTo(N[0] - 16 + ox * 7, N[1] + (T[1] - N[1]) * 0.25 + oy * 8, T[0] + 20 + ox * 3, T[1] - oy * 2, T[0], T[1]);
+      }
+    };
+    c.strokeStyle = 'rgba(120,255,220,0.2)'; c.lineWidth = 4.6; edges(); c.stroke();
+    c.strokeStyle = '#c8fff2'; c.lineWidth = 1.5; edges(); c.stroke();
+    c.strokeStyle = 'rgba(200,255,242,0.5)'; c.lineWidth = 1;
+    c.beginPath(); c.moveTo(N[0] + 3, N[1] - 0.8); c.lineTo(K[0] - 2, K[1]); c.stroke();
+    // the pole star at the nose
+    const tw = 0.75 + 0.25 * Math.sin(gtime * 4.1);
+    c.fillStyle = 'rgba(186,255,240,0.16)'; c.beginPath(); c.arc(N[0] + 3, N[1] - 0.8, 7 * tw, 0, TAU); c.fill();
+    c.fillStyle = 'rgba(186,255,240,0.3)'; c.beginPath(); c.arc(N[0] + 3, N[1] - 0.8, 3.8, 0, TAU); c.fill();
+    c.fillStyle = '#ffffff'; star4(c, N[0] + 3, N[1] - 0.8, 4.6 * tw);
+  } else if (sid === 'vitray') {
+    // two swallowtails, each ending in a drop of glass
+    for (const [dy, col, p2] of [[-1.6, '#3fa9f5', 0], [1.6, '#ff5d6c', 1.9]]) {
+      const f = Math.sin(ph * 1.7 + p2) * 1.8;
+      c.strokeStyle = '#120c1c'; c.lineWidth = 1.5;
+      c.beginPath(); c.moveTo(K[0], K[1] + dy * 0.5); c.bezierCurveTo(K[0] - 7, K[1] + dy * 3 + f, K[0] - 12, K[1] + dy - f, K[0] - 19, K[1] + dy * 3.2 + f * 1.3); c.stroke();
+      const ex = K[0] - 19, ey = K[1] + dy * 3.2 + f * 1.3;
+      c.fillStyle = col; c.beginPath(); c.arc(ex - 1.4, ey, 2.1, 0, TAU); c.fill(); c.stroke();
+      c.fillStyle = '#ffffff'; c.beginPath(); c.arc(ex - 1.9, ey - 0.7, 0.6, 0, TAU); c.fill();
+    }
+    // leaded leading edges with a thread of gold, and the butterfly's body down the keel
+    const edges = () => {
+      c.beginPath();
+      for (const near of [false, true]) {
+        const T = vitrayTip(near), ox = near ? 1 : -0.6, oy = near ? 1 : -1;
+        c.moveTo(N[0] + 2, N[1] - 0.5);
+        c.bezierCurveTo(N[0] - 10 + ox * 9, N[1] + oy * 13, T[0] + 14 + ox * 5, T[1] + oy * 5, T[0], T[1]);
+      }
+    };
+    c.strokeStyle = '#120c1c'; c.lineWidth = 2.3; edges(); c.stroke();
+    c.strokeStyle = 'rgba(255,211,107,0.85)'; c.lineWidth = 0.7; edges(); c.stroke();
+    c.strokeStyle = '#1a1028'; c.lineWidth = 3.2;
+    c.beginPath(); c.moveTo(N[0] + 2, N[1] - 0.5); c.lineTo(K[0] + 2, K[1]); c.stroke();
+    c.strokeStyle = 'rgba(255,211,107,0.8)'; c.lineWidth = 0.7;
+    c.beginPath();
+    for (let i = 1; i <= 6; i++) { const bx = lerp(N[0], K[0], i / 7), by = lerp(N[1], K[1], i / 7); c.moveTo(bx - 0.3, by - 1.4); c.lineTo(bx + 0.3, by + 1.4); }
+    c.stroke();
+    // head and two curled antennae
+    c.fillStyle = '#1a1028'; c.beginPath(); c.arc(N[0] + 3, N[1] - 0.5, 2.5, 0, TAU); c.fill();
+    c.strokeStyle = '#120c1c'; c.lineWidth = 0.9;
+    c.beginPath();
+    c.moveTo(N[0] + 4, N[1] - 1.8); c.quadraticCurveTo(N[0] + 9, N[1] - 4, N[0] + 10, N[1] - 8.5);
+    c.moveTo(N[0] + 4.6, N[1] + 0.6); c.quadraticCurveTo(N[0] + 10, N[1] + 1, N[0] + 12.5, N[1] - 2.6);
+    c.stroke();
+    c.fillStyle = '#ffd36b';
+    c.beginPath(); c.arc(N[0] + 10, N[1] - 8.7, 1.2, 0, TAU); c.arc(N[0] + 12.6, N[1] - 2.8, 1.2, 0, TAU); c.fill();
   } else {
     // Classic leading edge tubes and keel
     c.strokeStyle = '#3b4252'; c.lineWidth = 1.6;
@@ -424,8 +655,11 @@ function paintBird(mode = 'all', customTransform = null) {
   const sitting = !wing && bird.grounded, hanging = !wing && !bird.grounded && chute && chute.open > 0.5;
   const amp = bird.grounded ? 0 : hanging ? 0.18 : 1, tt = gtime;
   const pid = LOOK.pilotId;
-  const isFemale = pid === 'atmaca' || pid === 'bulut' || pid === 'yildiz';
-  const skinCol = isFemale ? '#f3c6a6' : pid === 'dogan' ? '#dfb08a' : '#e4b892';
+  const isFemale = pid === 'atmaca' || pid === 'bulut' || pid === 'yildiz' || pid === 'luna';
+  const skinCol = pid === 'luna' ? '#f6d2ba' : isFemale ? '#f3c6a6' : pid === 'dogan' ? '#dfb08a' : pid === 'kor' ? '#c99a78' : '#e4b892';
+  // the slow breath of the embers on Kor's armour
+  const emb = 0.55 + 0.45 * Math.sin(gtime * 3.2);
+  const rr = (x, y, w2, h2, r) => { c.beginPath(); if (c.roundRect) c.roundRect(x, y, w2, h2, r); else c.rect(x, y, w2, h2); };
   const seg2 = (sx, sy, a, l1, bend, l2) => {
     const ex = sx + Math.cos(a) * l1, ey = sy + Math.sin(a) * l1;
     return [sx, sy, ex, ey, ex + Math.cos(a + bend) * l2, ey + Math.sin(a + bend) * l2];
@@ -481,6 +715,17 @@ function paintBird(mode = 'all', customTransform = null) {
     // Gold royal boot cuffs on Yıldız
     c.strokeStyle = '#fff0a8'; c.lineWidth = 1.1;
     c.beginPath(); c.moveTo(-27.5, 2.4 - kick * 0.6); c.lineTo(-28.2, 6.4 - kick * 0.6); c.stroke();
+  } else if (pid === 'kor') {
+    // ember-lit greaves
+    c.strokeStyle = `rgba(255,154,60,${emb.toFixed(3)})`; c.lineWidth = 1.2;
+    c.beginPath(); c.moveTo(-19, 2.6); c.lineTo(-22, 5.6); c.moveTo(-24, 3.4 - kick * 0.4); c.lineTo(-27.5, 5.8 - kick * 0.7); c.stroke();
+  } else if (pid === 'luna') {
+    c.strokeStyle = '#7fe8e0'; c.lineWidth = 1.1;
+    c.beginPath(); c.moveTo(-27.5, 2.4 - kick * 0.6); c.lineTo(-28.2, 6.4 - kick * 0.6); c.stroke();
+  } else if (pid === 'nova') {
+    // orange rings at the knee and the boot top
+    c.strokeStyle = '#ff7a3c'; c.lineWidth = 1.6;
+    c.beginPath(); c.moveTo(-19.6, 2.4); c.lineTo(-20.4, 6.4); c.moveTo(-26.6, 2.2 - kick * 0.6); c.lineTo(-27.4, 6.6 - kick * 0.6); c.stroke();
   }
   }
 
@@ -555,6 +800,75 @@ function paintBird(mode = 'all', customTransform = null) {
     // ornate golden royal necklace/collar
     c.strokeStyle = '#ffe680'; c.lineWidth = 1.6;
     c.beginPath(); c.arc(5.2, 1.2, 3.6, -Math.PI * 0.42, Math.PI * 0.42); c.stroke();
+  } else if (pid === 'kor') {
+    // Kor: a torn cape that burns along its edge, obsidian plates with molten cracks, a spiked pauldron
+    const cw = Math.sin(gtime * 11) * 1.5 - sway * 2.5;
+    c.fillStyle = '#4a0e14';
+    c.beginPath();
+    c.moveTo(5, -3.2); c.quadraticCurveTo(-8, -8.2 + cw * 0.5, -22, -7 + cw);
+    c.lineTo(-18.5, -4.6 + cw * 0.8); c.lineTo(-25, -3 + cw * 1.1); c.lineTo(-19.5, -1.2 + cw * 0.7); c.lineTo(-24, 1.2 + cw); c.lineTo(-7, 1.4);
+    c.closePath(); c.fill();
+    c.fillStyle = `rgba(255,122,46,${(0.5 + 0.35 * emb).toFixed(3)})`;
+    c.beginPath();
+    c.moveTo(-11, -5.4 + cw * 0.4); c.lineTo(-21, -6.4 + cw); c.lineTo(-18, -4.4 + cw * 0.8); c.lineTo(-23.6, -3 + cw * 1.1); c.lineTo(-18.6, -1.4 + cw * 0.7); c.lineTo(-22.4, 0.7 + cw); c.lineTo(-13, 0.2);
+    c.closePath(); c.fill();
+    c.fillStyle = `rgba(255,224,150,${(0.3 + 0.5 * emb).toFixed(3)})`;
+    c.beginPath(); c.moveTo(-14, -3.6 + cw * 0.5); c.lineTo(-20.4, -3.1 + cw); c.lineTo(-15, -1.5 + cw * 0.5); c.closePath(); c.fill();
+    c.strokeStyle = '#0a0608'; c.lineWidth = 1.1;
+    c.beginPath(); c.moveTo(-6.5, -3.4); c.quadraticCurveTo(-4.6, 1.5, -6.8, 6.2); c.moveTo(-1, -3.8); c.quadraticCurveTo(1, 1.5, -1.2, 6.6); c.moveTo(4, -3.4); c.quadraticCurveTo(5.6, 1.4, 3.6, 6.2); c.stroke();
+    c.strokeStyle = `rgba(255,154,60,${(0.45 + 0.55 * emb).toFixed(3)})`; c.lineWidth = 1;
+    c.beginPath(); c.moveTo(-9.6, 0); c.lineTo(-7.8, 1.8); c.lineTo(-8.6, 3.8); c.moveTo(-4, -1.6); c.lineTo(-2.6, 0.6); c.lineTo(-3.8, 2.4); c.lineTo(-2.4, 4.4); c.moveTo(1.4, -1.2); c.lineTo(2.6, 1.2); c.lineTo(1.6, 3.4); c.stroke();
+    c.fillStyle = '#241a1e'; c.strokeStyle = '#ff8a2e'; c.lineWidth = 0.9;
+    c.beginPath(); c.ellipse(5.8, 1.2, 3.9, 2.9, 0.2, 0, TAU); c.fill(); c.stroke();
+    c.fillStyle = '#d8c8a8'; c.beginPath(); c.moveTo(4.2, -1.3); c.lineTo(5, -5.6); c.lineTo(7, -1.1); c.closePath(); c.fill();
+  } else if (pid === 'luna') {
+    // Luna: a long veil in two sheer layers with stars caught in it, a pale robe, a teal sash and a crescent clasp
+    const cw = Math.sin(gtime * 7.5) * 1.6 - sway * 2.5;
+    for (const [len, al, off] of [[31, 0.3, 0.9], [25, 0.48, 0]]) {
+      const w2 = Math.sin(gtime * 7.5 + off) * 1.6 - sway * 2.5;
+      c.fillStyle = `rgba(190,225,255,${al})`;
+      c.beginPath();
+      c.moveTo(5.5, -3.2); c.quadraticCurveTo(-8, -8.6 + w2 * 0.5, -len + 4, -7.4 + w2);
+      c.quadraticCurveTo(-len - 1, -3 + w2 * 0.9, -len + 2, 1.6 + w2);
+      c.quadraticCurveTo(-12, 2.6, -4, 1.4);
+      c.closePath(); c.fill();
+    }
+    c.fillStyle = '#ffffff';
+    for (const [vx, vy, f] of [[-9, -4.6, 0], [-15, -2.4, 1.7], [-20, -5.2, 3.1], [-22.5, -0.8, 4.4]]) {
+      c.globalAlpha = 0.3 + 0.7 * Math.pow(Math.max(0, Math.sin(gtime * 2.6 + f)), 2);
+      star4(c, vx, vy + cw * 0.6, 1.3);
+    }
+    c.globalAlpha = 1;
+    c.fillStyle = '#e9f0ff'; c.strokeStyle = '#7fe8e0'; c.lineWidth = 0.9;
+    c.beginPath();
+    c.moveTo(-6.5, -3); c.quadraticCurveTo(-16.5, -3.8, -15, -0.4); c.quadraticCurveTo(-17.6, 2.4, -14.4, 5); c.quadraticCurveTo(-11, 6.9, -6.5, 5.8);
+    c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = '#5fd8d0'; c.beginPath(); c.ellipse(-6.2, 1.4, 1.3, 4.7, 0.05, 0, TAU); c.fill();
+    c.fillStyle = '#ffe9a8'; c.beginPath(); c.arc(0.4, 1.4, 2.4, 0, TAU); c.arc(1.1, 1.1, 1.6, 0, TAU, true); c.fill('evenodd');
+    c.strokeStyle = '#7fe8e0'; c.lineWidth = 1.3;
+    c.beginPath(); c.arc(5.2, 1.2, 3.6, -Math.PI * 0.42, Math.PI * 0.42); c.stroke();
+  } else if (pid === 'nova') {
+    // Nova: a rocket pack with a flickering flame, suit seams, a chest panel of blinking lights, an air hose
+    const fl = 0.72 + 0.28 * Math.sin(gtime * 31) * Math.sin(gtime * 13 + 1);
+    c.fillStyle = `rgba(110,190,255,${(0.38 * fl).toFixed(3)})`;
+    c.beginPath(); c.moveTo(-9.6, -7.8); c.lineTo(-9.6 - 15 * fl, -5.6); c.lineTo(-9.6, -3.4); c.closePath(); c.fill();
+    c.fillStyle = `rgba(235,250,255,${(0.92 * fl).toFixed(3)})`;
+    c.beginPath(); c.moveTo(-9.6, -6.8); c.lineTo(-9.6 - 8 * fl, -5.6); c.lineTo(-9.6, -4.4); c.closePath(); c.fill();
+    c.fillStyle = '#c8d0dc'; c.strokeStyle = '#8a94a8'; c.lineWidth = 0.8;
+    rr(-9, -8.3, 13, 5.5, 2); c.fill(); c.stroke();
+    c.fillStyle = '#39445c'; rr(-10.8, -7.5, 2.6, 3.9, 0.8); c.fill();
+    c.fillStyle = '#ff7a3c'; c.fillRect(-4.6, -8.3, 2.2, 5.5);
+    c.strokeStyle = 'rgba(120,132,156,0.7)'; c.lineWidth = 0.9;
+    c.beginPath(); c.moveTo(-6.5, -3.2); c.quadraticCurveTo(-5, 1.5, -6.8, 6.2); c.moveTo(3.6, -3.2); c.quadraticCurveTo(5, 1.4, 3.4, 6.2); c.stroke();
+    c.fillStyle = '#39445c'; rr(-3.8, 0, 6.8, 3.8, 0.9); c.fill();
+    const leds = ['#ff5a5a', '#5aff8a', '#5ab4ff'];
+    for (let i = 0; i < 3; i++) {
+      c.globalAlpha = Math.sin(gtime * 4 + i * 2.1) > 0 ? 1 : 0.3; c.fillStyle = leds[i];
+      c.beginPath(); c.arc(-2.3 + i * 1.95, 1.9, 0.8, 0, TAU); c.fill();
+    }
+    c.globalAlpha = 1;
+    c.strokeStyle = '#ff7a3c'; c.lineWidth = 1.5; c.beginPath(); c.arc(6, 1.2, 3.4, Math.PI * 0.6, Math.PI * 1.4); c.stroke();
+    c.strokeStyle = '#8a94a8'; c.lineWidth = 1; c.beginPath(); c.moveTo(2, -3.2); c.quadraticCurveTo(6, -6.6, 9.4, -4.8); c.stroke();
   }
   c.fillStyle = '#c9ccd4'; c.beginPath(); c.arc(-2, -3, 1.4, 0, TAU); c.fill();
   // scarf streaming behind: a simple ribbon in the shop preview, cloth towed through the air in flight
@@ -641,6 +955,34 @@ function paintBird(mode = 'all', customTransform = null) {
       const sx = 10.5 - i * 4.5, sy = -4.6 - i * 0.4 + hw(i, 10);
       c.beginPath(); c.arc(sx, sy, 1.15, 0, TAU); c.fill();
     }
+  } else if (pid === 'kor') {
+    // embers lifting off the cape behind him
+    for (let i = 0; i < 4; i++) {
+      const u = (gtime * 0.8 + i * 0.25) % 1;
+      c.globalAlpha = (1 - u) * 0.85; c.fillStyle = i % 2 ? '#ffd98a' : '#ff8a2e';
+      c.beginPath(); c.arc(2 - u * 24, -6.5 - u * 5 + Math.sin(u * 8 + i * 2) * 1.6, 1.1 * (1 - u * 0.5), 0, TAU); c.fill();
+    }
+    c.globalAlpha = 1;
+  } else if (pid === 'luna') {
+    // very long silver hair, a brighter layer over it and one moonlit streak
+    c.fillStyle = '#b9c6e6';
+    c.beginPath();
+    c.moveTo(11, -5.2);
+    for (let i = 1; i <= 7; i++) c.lineTo(11 - i * 4.9, -5.8 - i * 0.5 + hw(i, 8.5) - (3.4 - i * 0.33));
+    for (let i = 7; i >= 1; i--) c.lineTo(11 - i * 4.7, -3.0 - i * 0.35 + hw(i, 8.5) + (2.9 - i * 0.3));
+    c.closePath(); c.fill();
+    c.fillStyle = '#f4f7ff';
+    c.beginPath();
+    c.moveTo(10.2, -4.5);
+    for (let i = 1; i <= 6; i++) c.lineTo(10.2 - i * 4.5, -4.8 - i * 0.42 + hw(i + 0.7, 8.5) - (2 - i * 0.25));
+    for (let i = 6; i >= 1; i--) c.lineTo(10.2 - i * 4.3, -3.5 - i * 0.32 + hw(i + 0.7, 8.5) + (1.6 - i * 0.2));
+    c.closePath(); c.fill();
+    c.strokeStyle = 'rgba(255,255,255,0.95)'; c.lineWidth = 0.9;
+    c.beginPath(); c.moveTo(9.5, -4.6);
+    for (let i = 1; i <= 6; i++) c.lineTo(9.5 - i * 4.4, -4.6 - i * 0.4 + hw(i, 8.5));
+    c.stroke();
+  } else if (pid === 'nova') {
+    // no hair shows under the helmet
   } else {
     // Rüzgâr: windblown messy chestnut locks at the nape
     c.fillStyle = '#5a341e';
@@ -737,6 +1079,58 @@ function paintBird(mode = 'all', customTransform = null) {
     c.fillStyle = '#f5c84c'; c.beginPath(); c.arc(15.7, -2.1, 2.0, 0, TAU); c.fill();
     c.fillStyle = bird.dead ? '#3a3a44' : '#c996ff'; c.beginPath(); c.arc(15.9, -2.1, 1.35, 0, TAU); c.fill();
     if (!bird.dead) { c.fillStyle = '#ffffff'; c.beginPath(); c.arc(16.3, -2.6, 0.48, 0, TAU); c.fill(); }
+  } else if (pid === 'kor') {
+    // horned dragon helm: jaw guard, two swept-back horns, a spiked brow and a burning eye slit
+    c.fillStyle = LOOK.helmet;
+    c.beginPath(); c.arc(12, -1.8, 5.5, Math.PI * 0.9, Math.PI * 2.1); c.closePath(); c.fill();
+    c.fillStyle = '#2a1c22';
+    c.beginPath(); c.moveTo(9.6, -1.8); c.lineTo(13, -1.4); c.lineTo(15.6, 3.2); c.lineTo(11.6, 3); c.closePath(); c.fill();
+    c.fillStyle = '#d8c8a8'; c.strokeStyle = '#6a5a44'; c.lineWidth = 0.6;
+    c.beginPath(); c.moveTo(12.6, -6.6); c.quadraticCurveTo(7, -11.5, 0.5, -10.6); c.quadraticCurveTo(6, -8.6, 9.4, -5.8); c.closePath(); c.fill(); c.stroke();
+    c.beginPath(); c.moveTo(9.2, -5.2); c.quadraticCurveTo(4.5, -8.2, 0.2, -6.6); c.quadraticCurveTo(4.6, -6, 7.4, -3.8); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = '#120c0e';
+    c.beginPath(); c.moveTo(13.4, -6.9); c.lineTo(15.6, -8.8); c.lineTo(15.4, -6.2); c.lineTo(17.8, -7); c.lineTo(16.8, -4.6); c.closePath(); c.fill();
+    if (!bird.dead) { c.fillStyle = `rgba(255,154,60,${(0.12 + 0.2 * emb).toFixed(3)})`; c.beginPath(); c.arc(16, -2.4, 3.6, 0, TAU); c.fill(); }
+    c.fillStyle = bird.dead ? '#3a3a44' : `rgb(255,${(165 + 55 * emb) | 0},70)`;
+    c.beginPath(); c.moveTo(13.4, -2.9); c.lineTo(17.8, -3.4); c.lineTo(17.2, -1.5); c.lineTo(13.8, -1.6); c.closePath(); c.fill();
+  } else if (pid === 'luna') {
+    // a halo of moonlight, silver hair, a circlet carrying a standing crescent, a glowing teal eye
+    if (!bird.dead) { c.fillStyle = 'rgba(220,240,255,0.1)'; c.beginPath(); c.arc(12, -4, 9.5, 0, TAU); c.fill(); }
+    c.fillStyle = '#e6ecfb';
+    c.beginPath(); c.arc(12.1, -2.1, 5.4, Math.PI * 0.88, Math.PI * 2.0); c.closePath(); c.fill();
+    c.fillStyle = '#ffffff';
+    c.beginPath(); c.moveTo(13.2, -2.2); c.quadraticCurveTo(11.6, 1.2, 13.5, 3.9); c.quadraticCurveTo(14.6, 1.4, 14.3, -2.0); c.closePath(); c.fill();
+    c.strokeStyle = '#9fb4dc'; c.lineWidth = 1;
+    c.beginPath(); c.moveTo(7.6, -2.6); c.quadraticCurveTo(12.6, -5, 17.2, -3.2); c.stroke();
+    if (!bird.dead) { c.fillStyle = 'rgba(255,233,168,0.24)'; c.beginPath(); c.arc(14.4, -7.8, 5 + 0.5 * Math.sin(gtime * 2.2), 0, TAU); c.fill(); }
+    c.fillStyle = '#ffd86b'; c.strokeStyle = '#b8862c'; c.lineWidth = 0.45;
+    c.beginPath(); c.arc(14.4, -7.8, 3.2, 0, TAU); c.arc(15.3, -8.1, 2.1, 0, TAU, true); c.fill('evenodd'); c.stroke();
+    c.strokeStyle = '#3a4468'; c.lineWidth = 1.1;
+    c.beginPath(); c.moveTo(13.5, -2.2); c.lineTo(14.7, -3.1); c.stroke();
+    c.fillStyle = '#dfe8ff'; c.beginPath(); c.arc(15.7, -2.1, 2.0, 0, TAU); c.fill();
+    c.fillStyle = bird.dead ? '#3a3a44' : '#3fd8cc'; c.beginPath(); c.arc(15.9, -2.1, 1.35, 0, TAU); c.fill();
+    if (!bird.dead) { c.fillStyle = '#ffffff'; c.beginPath(); c.arc(16.3, -2.6, 0.48, 0, TAU); c.fill(); }
+  } else if (pid === 'nova') {
+    // a glass helmet with a gold visor that mirrors the sky, an orange neck ring, an antenna with a blinking light
+    c.strokeStyle = '#8a94a8'; c.lineWidth = 0.9;
+    c.beginPath(); c.moveTo(9.6, -6.6); c.lineTo(7.8, -11); c.stroke();
+    c.fillStyle = !bird.dead && Math.sin(gtime * 5) > 0.2 ? '#ff5a5a' : '#7a2a2a';
+    c.beginPath(); c.arc(7.7, -11.2, 1.25, 0, TAU); c.fill();
+    c.fillStyle = LOOK.helmet; c.strokeStyle = '#a8b2c4'; c.lineWidth = 0.9;
+    c.beginPath(); c.arc(12.6, -1.4, 6.3, 0, TAU); c.fill(); c.stroke();
+    c.fillStyle = '#ff7a3c'; c.beginPath(); c.ellipse(7.2, 0.6, 1.5, 4.4, 0.25, 0, TAU); c.fill();
+    let vis = '#3a3a44';
+    if (!bird.dead) {
+      vis = c.createLinearGradient(11, -5, 18, 3);
+      vis.addColorStop(0, '#fff0b8'); vis.addColorStop(0.5, LOOK.visor || '#ffc857'); vis.addColorStop(1, '#c9731e');
+    }
+    c.fillStyle = vis; c.strokeStyle = '#8a5a1a'; c.lineWidth = 0.6;
+    c.beginPath(); c.moveTo(11.4, -5.6); c.quadraticCurveTo(18.6, -6.4, 18.8, -1.2); c.quadraticCurveTo(18.4, 3.6, 12.6, 3.4); c.quadraticCurveTo(10, -1, 11.4, -5.6); c.closePath(); c.fill(); c.stroke();
+    if (!bird.dead) {
+      c.strokeStyle = 'rgba(255,255,255,0.9)'; c.lineWidth = 1.1;
+      c.beginPath(); c.moveTo(12.8, -4.4); c.quadraticCurveTo(15.6, -5.2, 17.2, -3.2); c.stroke();
+      c.fillStyle = '#ffffff'; star4(c, 16.4, -0.2, 1.2);
+    }
   } else {
     // Rüzgâr: vintage cream & leather aviator cap with brown ear-flap, messy front hair tuft & brass goggles
     c.fillStyle = LOOK.helmet;
@@ -773,6 +1167,8 @@ function paintBird(mode = 'all', customTransform = null) {
       c.strokeStyle = '#ffd86b'; c.lineWidth = 1.1; c.beginPath(); c.arc(handN[0] - 1.0, handN[1] - 1.0, 1.8, 0, TAU); c.stroke();
     } else if (pid === 'dogan') {
       c.strokeStyle = '#66f0ff'; c.lineWidth = 1.1; c.beginPath(); c.arc(handN[0] - 1.0, handN[1] - 1.0, 1.8, 0, TAU); c.stroke();
+    } else if (pid === 'kor' || pid === 'nova' || pid === 'luna') {
+      c.strokeStyle = pid === 'luna' ? '#7fe8e0' : '#ff8a2e'; c.lineWidth = 1.1; c.beginPath(); c.arc(handN[0] - 1.0, handN[1] - 1.0, 1.8, 0, TAU); c.stroke();
     }
     c.fillStyle = LOOK.glove || skinCol;
     c.beginPath(); c.moveTo(handN[0] + 1.9, handN[1]); c.arc(handN[0], handN[1], 1.9, 0, TAU); c.moveTo(handF[0] + 1.6, handF[1]); c.arc(handF[0], handF[1], 1.6, 0, TAU); c.fill();

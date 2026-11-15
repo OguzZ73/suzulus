@@ -1,10 +1,10 @@
 // Süzülüş — service worker: lets the game be installed and played offline.
 // Network first, so a new version is picked up whenever there is a connection; the cache is only the fallback.
-const CACHE = 'suzulus-v1';
+const CACHE = 'suzulus-v2';
 const SHELL = [
   './', 'index.html', 'css/style.css', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png',
-  'js/rain-audio.js', 'js/core.js', 'js/audio.js', 'js/state.js', 'js/world.js', 'js/game.js', 'js/update.js', 'js/sky.js',
+  'js/i18n.js', 'js/rain-audio.js', 'js/core.js', 'js/audio.js', 'js/state.js', 'js/world.js', 'js/game.js', 'js/update.js', 'js/sky.js',
   'js/render-scene.js', 'js/render-ground.js', 'js/render-obstacles.js', 'js/render-items.js', 'js/render-glider.js', 'js/render-fx.js', 'js/main.js',
 ];
 self.addEventListener('install', (e) => {
